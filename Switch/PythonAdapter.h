@@ -1,19 +1,19 @@
 #ifndef PYTHONADAPTER_H
 #define PYTHONADAPTER_H
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 #include <iostream>
 #include <string>
 
-using namespace boost::python;
+namespace py = pybind11;
 
 class PythonAdapter {
 public:
-    PythonAdapter(PyObject* self) : m_self(self) {}
+    PythonAdapter() {}
 
-    bool addRule();
-    bool deleteRule();
-    void printAllRules(PyObject* m_self);
+    //bool addRule();
+    //bool deleteRule();
+    //void printAllRules(PyObject* m_self);
     //const py::list getAllRules();
-    PyObject* const m_self;
+    //PyObject* const m_self;
 };
 #endif
