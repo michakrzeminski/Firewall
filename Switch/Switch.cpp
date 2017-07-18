@@ -1,5 +1,6 @@
 #include "Switch.h"
 #include "Client.h"
+#include "PythonAdapter.h"
 
 Switch* Switch::instance = nullptr;
 
@@ -16,8 +17,10 @@ Switch::Switch() {
 }
 
 void Switch::init() {
-    Client * client = Client::getInstance();
-    client->init();
-    std::thread(&Client::read, client).detach();
-    client->send("hello");
+    std::cout << "switch init" <<std::endl;
+    PythonAdapter adapter;
+    //Client * client = Client::getInstance();
+    //client->init();
+    //std::thread(&Client::read, client).detach();
+    //client->send("hello");
 }

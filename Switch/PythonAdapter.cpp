@@ -1,12 +1,20 @@
 #include "PythonAdapter.h"
+#include <exception>
 
-int add(int i, int j) {
-	return i+ j;
-}
+//std::function<void(std::string)> printRules;
 
-PYBIND11_PLUGIN(pybind11_math) {
-	py::module m("pybind11_math");
-	m.def("add", &add);
+struct Rule {
+	std::string protocol;
+};
+
+PYBIND11_PLUGIN(libPythonAdapter) {
+	py::module m("libPythonAdapter");
+
+	m.def("printAllRules", &PythonAdapter::printAllRules);
+
+	py::class_<Rule>(m, "Rule")
+		.def(py::init<>())
+		.def_readwrite("protocol", &Rule::protocol);
 	return m.ptr();
 }
 
@@ -20,8 +28,34 @@ PYBIND11_PLUGIN(pybind11_math) {
 //    return false;
 //}
 
-//void PythonAdapter::printAllRules(PyObject* m_self)
-//{
-    //call<double>(func);
-//    boost::python::call_method<void>(m_self, "printAllRules");
-//}
+PythonAdapter::PythonAdapter() {
+	std::cout << "Creating PythonAdapter" <<std::endl;
+	init();
+	try {
+		printAllRules();
+	}
+	catch(std::exception& e) {
+		std::cout << e.what() << std::endl;
+	}
+}
+
+void PythonAdapter::init() {
+	std::cout<<"adapter init"<<std::endl;
+	std::string plugInInitCode;
+	Py_Initialize();
+	pybind11_init();
+
+	plugInInitCode = "import sys\nimport os\nsys.path.append(os.getcwd())";
+
+	PyRun_SimpleString(plugInInitCode.c_str());
+}
+
+void PythonAdapter::printAllRules()
+{
+	std::cout<<"Debug: printAllRules"<<std::endl;
+	//printRules = f;
+	auto module = py::module::import("IptablesAdapter");
+	auto result = module.attr("printAllRules")("bum");
+	std::string ret = result.cast<std::string>();
+	std::cout<<ret<<std::endl;
+}
