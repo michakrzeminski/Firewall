@@ -2,9 +2,9 @@ import iptc
 import libPythonAdapter
 
 def addRule(object):
+	print "Adding rule: "
 	print object
 	list = object.split('/')
-	print list	
 	list_size = len(list)
 	print list_size
 	
@@ -25,21 +25,44 @@ def addRule(object):
 	
 	#TODO	
 	#dalej sa juz match'e	
-	counter = 0
-	for item in list:
-		counter += 1
-		print counter
-		if item != "None":
-			print "do smth"
-		else:
-			print "None"
-	
-	chain.append_rule(rule)
-	return False
+	#counter = 0
+	#for item in list:
+	#	counter += 1
+	#	print counter
+	#	if item != "None":
+	#		print "do smth"
+	#	else:
+	#		print "None"
+	try:
+		chain.append_rule(rule)
+		return True
+	except:
+		return False
 
 def deleteRule(object):
+	print "Deleting rule: "
 	print object
-	return False
+	list = object.split('/')
+	rule = iptc.Rule()
+	chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), list[0])
+	rule.target = iptc.Target(rule, list[1])
+        if list[2] != "None":
+                rule.protocol = list[2]
+        if list[3] != "None":
+                rule.src = list[3]
+        if list[4] != "None":
+                rule.dst = list[4]
+        if list[5] != "None":
+                rule.in_interface = list[5]
+        if list[6] != "None":
+                rule.out_interface = list[6]
+	#TODO match'e
+	try:
+		chain.delete_rule(rule)
+		return True
+	except:
+		return False
+
 def printAllRules(object):
 	print object
 	table = iptc.Table(iptc.Table.FILTER)
@@ -54,4 +77,5 @@ def printAllRules(object):
 				print match.name, match.state, match.mark, match.sport, match.dport, match.src_range, match.dst_range, match.mac_source,
 			print(" ")
 	return True
+
 #def resetToDefault():
