@@ -4,3 +4,8 @@
 *.so
 *.com
 *.dblite
+*.swo
+*.os
+*.save
+*.save.1
+
