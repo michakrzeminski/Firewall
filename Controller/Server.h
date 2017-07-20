@@ -18,5 +18,6 @@ private:
     tcp::resolver* resolver;
     std::map<int, boost::asio::ip::tcp::endpoint> clients;
     int counter = 0;
+    const char* PORT = "8888";
 };
 #endif

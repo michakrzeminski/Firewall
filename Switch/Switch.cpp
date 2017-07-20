@@ -22,5 +22,6 @@ void Switch::init() {
     Client * client = Client::getInstance();
     client->init();
     std::thread(&Client::read, client).detach();
-    client->send("hello");
+    Protocol hello(HELLO);
+    client->send(hello);
 }

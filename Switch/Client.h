@@ -2,6 +2,7 @@
 #define CLIENT_H
 #include <iostream>
 #include <boost/asio.hpp>
+#include "Protocol.h"
 
 using boost::asio::ip::tcp;
 
@@ -9,7 +10,7 @@ class Client {
 public:
     static Client* getInstance();
     bool init();
-    void send(const char* message);
+    void send(Protocol msg);
     void read(); //in diffrent thread loop to receive everything
 private:
     Client();
