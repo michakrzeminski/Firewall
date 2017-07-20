@@ -1,5 +1,4 @@
 #include "Switch.h"
-#include "Client.h"
 #include "PythonAdapter.h"
 
 Switch* Switch::instance = nullptr;

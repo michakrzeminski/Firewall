@@ -18,5 +18,7 @@ private:
     boost::asio::io_service io_service;
     tcp::socket s;
     tcp::resolver resolver;
+    const char* HOST = "127.0.0.1";
+    const char* PORT = "8888";
 };
 #endif

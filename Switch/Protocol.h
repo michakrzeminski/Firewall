@@ -12,7 +12,11 @@ public:
     ProtocolHeader header;
     std::string payload;
     template<class Archive>
-    void serialize(Archive & ar, const unsigned int version);
+    void serialize(Archive & ar, const unsigned int version) {
+	ar & id;
+	ar & header;
+	ar & payload;
+    }
     static int counter;
 };
 #endif

@@ -15,10 +15,3 @@ Protocol::Protocol(ProtocolHeader ph, std::string pl) {
     header = ph;
     payload = pl;
 }
-
-template<class Archive>
-void Protocol::serialize(Archive & ar, const unsigned int version) {
-    ar & id;
-    ar & header;
-    ar & payload;
-}
