@@ -28,8 +28,7 @@ bool Client::init() {
 
 void Client::send(Protocol toSend) {
     try {
-        //size_t message_length = std::strlen(message);
-        //boost::asio::write(s, boost::asio::buffer(message, message_length));
+	std::cout<<"C: Sending..."<<std::endl;
         std::ostringstream archive_stream;
         boost::archive::text_oarchive archive(archive_stream);
         archive << toSend;
@@ -49,13 +48,14 @@ void Client::read() {
             boost::system::error_code error;
             size_t length = s.read_some(boost::asio::buffer(data), error);
             if (length > 0) {
-                std::cout << "Wiadomosc: " << data << std::endl;
+                std::cout << "C: Received: " << data << std::endl;
                 Protocol received;
                 try {
                     std::string archive_data(&data[0], length);
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
                     archive >> received;
+		    std::cout<<"C: Protocol: "<<received.id<<" "<<received.header<<" "<<received.payload<<std::endl;
                 }
                 catch (std::exception& e) {
                     // Unable to decode data.
@@ -63,6 +63,18 @@ void Client::read() {
                     return;
                 }
                 //TODO w zaleznosci co odebralismy wykonujemy...
+		if(received.header == HELLO) {
+		    //TODO
+		}
+		else if(received.header == OK) {
+		    //TODO
+		}
+		else if(received.header == ADD) {
+		    //TODO
+		}
+		else if(received.header == DEL) {
+		    //TODO
+		}
             }
 
             if (error == boost::asio::error::eof)

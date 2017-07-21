@@ -42,44 +42,49 @@ void Server::session(tcp::socket sock) {
 
             boost::system::error_code error;
             size_t length = sock.read_some(boost::asio::buffer(data), error);
-            //size_t length = boost::asio::read(sock, boost::asio::buffer(data, MAX_LENGTH));
             if (length > 0) {
                 std::cout << "Wiadomosc: " << data << std::endl;
-                //przyszla jakas wiadomosc
-                //TO TEST--------------
                 try {
                     std::string archive_data(&data[0], length);
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
                     archive >> protocol;
+		    std::cout<<"Protocol: "<<protocol.id<<" "<<protocol.header<<" "<<protocol.payload<<std::endl;
                 }
                 catch (std::exception& e) {
                     // Unable to decode data.
                     boost::system::error_code error(boost::asio::error::invalid_argument);
                     return;
                 }
-                //--------------
 
                 if (protocol.header == HELLO) {
                     std::cout << "Client: " << counter << " Endpoint: " << sock.remote_endpoint() << std::endl;
                     clients.insert(std::pair<int, boost::asio::ip::tcp::endpoint>(++counter, sock.remote_endpoint()));
-                    //odsy³amy HELLO
-                    //TOTEST-------------
+                    //odsylamy HELLO
                     try {
                         Protocol toSend(HELLO);
                         std::ostringstream archive_stream;
                         boost::archive::text_oarchive archive(archive_stream);
                         archive << toSend;
                         auto outbound_data_ = archive_stream.str();
-
-                        //boost::asio::async_write(sock, buffers, handler);
                         boost::asio::write(sock, boost::asio::buffer(outbound_data_, outbound_data_.length()));
                     }
                     catch (std::exception& e) {
                         std::cout << "Exception: " << e.what() << "\n";
                     }
-                    //-----------------
                 }
+		else if(protocol.header == RULELIST) {
+		    //TODO
+		}
+		else if(protocol.header == CHECK) {
+		    //TODO
+		}
+		else if(protocol.header == ADDED) {
+		    //TODO
+		}
+		else if(protocol.header == DELED) {
+		    //TODO
+		}
             }
 
             if (error == boost::asio::error::eof)
