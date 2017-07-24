@@ -17,20 +17,28 @@ Switch::Switch() {
 
 void Switch::init() {
     std::cout << "switch init" <<std::endl;
+    std::thread(&Switch::sniff, this).detach();
     PythonAdapter adapter;
     Client * client = Client::getInstance();
     client->init();
     std::thread(&Client::read, client).detach();
     Protocol hello(HELLO);
     client->send(hello);
+}
 
+void Switch::sniff() {
     sniffer = new Tins::Sniffer("eth0");
     sniffer->sniff_loop(make_sniffer_handler(this, &Switch::callback));
-    std::cout<<"Debug"<<std::endl;
 }
 
 bool Switch::callback(Tins::PDU &pdu) {
     const Tins::IP &ip = pdu.rfind_pdu<Tins::IP>();
     std::cout<< "from "<<ip.src_addr() <<" to "<<ip.dst_addr()<<std::endl;
+	//miec jakos zebrana pule adresow czy cos
+	//Tins::Ipv4Address lo("127.0.0.1");
+	//Tins::HWAddress<6> hw_addr("01:de:22:01:09:af");
+	//i porownywac to co dostajemy moze z pula zapisana
     return true;
+	//zeby zakonczyc sniffowanie
+	//return false
 }

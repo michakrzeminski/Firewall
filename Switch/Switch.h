@@ -8,6 +8,7 @@ class Switch {
 public:
     static Switch* getInstance();
     void init();
+    void sniff();
 private:
     Switch();
     static Switch* instance;
