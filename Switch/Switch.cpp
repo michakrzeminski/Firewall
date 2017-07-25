@@ -23,4 +23,14 @@ void Switch::init() {
     std::thread(&Client::read, client).detach();
     Protocol hello(HELLO);
     client->send(hello);
+
+    sniffer = new Tins::Sniffer("eth0");
+    sniffer->sniff_loop(make_sniffer_handler(this, &Switch::callback));
+    std::cout<<"Debug"<<std::endl;
+}
+
+bool Switch::callback(Tins::PDU &pdu) {
+    const Tins::IP &ip = pdu.rfind_pdu<Tins::IP>();
+    std::cout<< "from "<<ip.src_addr() <<" to "<<ip.dst_addr()<<std::endl;
+    return true;
 }

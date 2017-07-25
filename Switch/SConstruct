@@ -5,9 +5,9 @@ baseEnv = Environment()
 if(platform.system() == "Linux"):
    baseEnv.Append( CPPFLAGS = '-std=c++11 -fPIC -finput-charset=iso-8859-2 -Wall -pedantic -pthread' )
    baseEnv.Append( LINKFLAGS = '-Wall -pthread' )
-   baseEnv.Append( CPPPATH = ['/usr/include/boost', '/usr/include/python2.7', '/usr/local/include/python2.7'] )
-   baseEnv.Append( LIBPATH = ['/usr/lib/arm-linux-gnueabihf', '/usr/lib/python2.7', '/usr/local/include/python2.7/pybind11'] )
-   baseEnv.Append( LIBS = ['boost_system', 'boost_regex', 'python2.7', 'boost_serialization'] )
+   baseEnv.Append( CPPPATH = ['/usr/include/boost', '/usr/include/python2.7', '/usr/local/include/python2.7', '/usr/local/include/tins'] )
+   baseEnv.Append( LIBPATH = ['/usr/lib/arm-linux-gnueabihf', '/usr/lib/python2.7', '/usr/local/include/python2.7/pybind11', '/usr/local/lib'] )
+   baseEnv.Append( LIBS = ['boost_system', 'boost_regex', 'python2.7', 'boost_serialization', 'tins'] )
 
 elif(platform.system() == "Windows"):
    baseEnv.Append( CPPFLAGS = ' /EHsc /MD /D "WIN32" /D "_WINDOWS" /W4' )
