@@ -3,6 +3,7 @@
 #include <iostream>
 #include <thread>
 #include <boost/asio.hpp>
+#include "Protocol.h"
 
 using boost::asio::ip::tcp;
 
@@ -11,6 +12,7 @@ public:
     static Server* getInstance();
     void init();
     void session(tcp::socket sock);
+    void send(tcp::socket* sock, Protocol toSend);
 private:
     Server();
     static Server* instance;

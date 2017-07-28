@@ -1,7 +1,6 @@
 #include "Server.h"
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
-#include "Protocol.h"
 
 Server* Server::instance = nullptr;
 
@@ -49,11 +48,12 @@ void Server::session(tcp::socket sock) {
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
                     archive >> protocol;
-		    std::cout<<"Protocol: "<<protocol.id<<" "<<protocol.header<<" "<<protocol.payload<<std::endl;
+		            std::cout<<"Protocol: "<<protocol.id<<" "<<protocol.header<<" "<<protocol.payload<<std::endl;
                 }
                 catch (std::exception& e) {
                     // Unable to decode data.
                     boost::system::error_code error(boost::asio::error::invalid_argument);
+                    std::cout << e.what() << std::endl;
                     return;
                 }
 
@@ -61,29 +61,24 @@ void Server::session(tcp::socket sock) {
                     std::cout << "Client: " << counter << " Endpoint: " << sock.remote_endpoint() << std::endl;
                     clients.insert(std::pair<int, boost::asio::ip::tcp::endpoint>(++counter, sock.remote_endpoint()));
                     //odsylamy HELLO
-                    try {
-                        Protocol toSend(HELLO);
-                        std::ostringstream archive_stream;
-                        boost::archive::text_oarchive archive(archive_stream);
-                        archive << toSend;
-                        auto outbound_data_ = archive_stream.str();
-                        boost::asio::write(sock, boost::asio::buffer(outbound_data_, outbound_data_.length()));
-                    }
-                    catch (std::exception& e) {
-                        std::cout << "Exception: " << e.what() << "\n";
-                    }
+                    Protocol hello(HELLO);
+                    send(&sock, hello);
                 }
 		else if(protocol.header == RULELIST) {
-		    //TODO
+		    //TODO wypisac ta liste i sobie gdzies zapisac
 		}
 		else if(protocol.header == CHECK) {
-		    //TODO
+		    //TODO analiza pakietu i dezycja
+            if (true)
+                send(&sock, Protocol(ADD));
+            else
+                send(&sock, Protocol(DEL));
 		}
 		else if(protocol.header == ADDED) {
-		    //TODO
+            std::cout << "Rule ADDED" << std::endl;
 		}
 		else if(protocol.header == DELED) {
-		    //TODO
+            std::cout << "Rule DELED" << std::endl;
 		}
             }
 
@@ -98,5 +93,19 @@ void Server::session(tcp::socket sock) {
     }
     catch (std::exception& e) {
         std::cout << "Exception in thread: " << e.what() << "\n";
+    }
+}
+
+void Server::send(tcp::socket* sock, Protocol toSend) {
+    try {
+        std::cout << "S: Sending ..." << std::endl;
+        std::ostringstream archive_stream;
+        boost::archive::text_oarchive archive(archive_stream);
+        archive << toSend;
+        auto outbound_data_ = archive_stream.str();
+        boost::asio::write(*sock, boost::asio::buffer(outbound_data_, outbound_data_.length()));
+    }
+    catch (std::exception& e) {
+        std::cout << "Exception: " << e.what() << "\n";
     }
 }
