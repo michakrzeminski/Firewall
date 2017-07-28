@@ -42,13 +42,12 @@ void Server::session(tcp::socket sock) {
             boost::system::error_code error;
             size_t length = sock.read_some(boost::asio::buffer(data), error);
             if (length > 0) {
-                std::cout << "Wiadomosc: " << data << std::endl;
                 try {
                     std::string archive_data(&data[0], length);
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
                     archive >> protocol;
-		            std::cout<<"Protocol: "<<protocol.id<<" "<<protocol.header<<" "<<protocol.payload<<std::endl;
+		    std::cout<<"Protocol: "<<protocol.id<<" "<<protocol.header<<" "<<protocol.payload<<std::endl;
                 }
                 catch (std::exception& e) {
                     // Unable to decode data.
@@ -66,19 +65,20 @@ void Server::session(tcp::socket sock) {
                 }
 		else if(protocol.header == RULELIST) {
 		    //TODO wypisac ta liste i sobie gdzies zapisac
+		    send(&sock, Protocol(OK));
 		}
 		else if(protocol.header == CHECK) {
 		    //TODO analiza pakietu i dezycja
-            if (true)
-                send(&sock, Protocol(ADD));
-            else
-                send(&sock, Protocol(DEL));
+            	    if (true)
+                	send(&sock, Protocol(ADD));
+            	    else
+                	send(&sock, Protocol(DEL));
 		}
 		else if(protocol.header == ADDED) {
-            std::cout << "Rule ADDED" << std::endl;
+           	    std::cout << "Rule ADDED" << std::endl;
 		}
 		else if(protocol.header == DELED) {
-            std::cout << "Rule DELED" << std::endl;
+            	    std::cout << "Rule DELED" << std::endl;
 		}
             }
 

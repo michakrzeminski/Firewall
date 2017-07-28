@@ -10,35 +10,34 @@ PYBIND11_PLUGIN(libPythonAdapter) {
 	return m.ptr();
 }
 
-void PythonAdapter::addRule(Rule rule)
+PythonAdapter* PythonAdapter::instance = nullptr;
+
+PythonAdapter* PythonAdapter::getInstance() {
+    if(!instance) {
+	instance = new PythonAdapter;
+    }
+    return instance;
+}
+
+bool PythonAdapter::addRule(Rule rule)
 {
 	auto module = py::module::import("IptablesAdapter");
 	auto result = module.attr("addRule")(rule.toString());
 	auto ret = result.cast<bool>();
-	std::cout<<ret<<std::endl;
+	return ret;
 }
 
-void PythonAdapter::deleteRule(Rule rule)
+bool PythonAdapter::deleteRule(Rule rule)
 {
 	auto module = py::module::import("IptablesAdapter");
 	auto result = module.attr("deleteRule")(rule.toString());
 	auto ret = result.cast<bool>();
-	std::cout<<ret<<std::endl;
+	return ret;
 }
 
 PythonAdapter::PythonAdapter() {
 	std::cout << "Creating PythonAdapter" <<std::endl;
 	init();
-	printAllRules();
-	//adding rule OUTPUT -j DROP
-	Rule testrule;
-	testrule.chain = "OUTPUT";
-	testrule.target = "DROP";
-	addRule(testrule);
-	printAllRules();
-	//deleting rule OUTPUT -j DROP
-	deleteRule(testrule);
-	printAllRules();
 }
 
 void PythonAdapter::init() {

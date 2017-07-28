@@ -17,8 +17,8 @@ Switch::Switch() {
 
 void Switch::init() {
     std::cout << "switch init" <<std::endl;
-    std::thread(&Switch::sniff, this).detach();
-    PythonAdapter adapter;
+    //std::thread(&Switch::sniff, this).detach();
+    PythonAdapter::getInstance();
     Client * client = Client::getInstance();
     client->init();
     std::thread(&Client::read, client).detach();

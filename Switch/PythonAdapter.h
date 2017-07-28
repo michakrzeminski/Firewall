@@ -11,11 +11,14 @@ namespace py = pybind11;
 
 class PythonAdapter {
 public:
-    PythonAdapter();
+    static PythonAdapter* getInstance();
     void init();
-    void addRule(Rule rule);
-    void deleteRule(Rule rule);
+    bool addRule(Rule rule);
+    bool deleteRule(Rule rule);
     void printAllRules();
     //const py::list getAllRules();
+private:
+    PythonAdapter();
+    static PythonAdapter* instance;
 };
 #endif

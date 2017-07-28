@@ -1,4 +1,5 @@
 #include "Client.h"
+#include "PythonAdapter.h"
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
@@ -43,37 +44,63 @@ void Client::send(Protocol toSend) {
 void Client::read() {
     try {
         for (;;) {
+	    Protocol received;
             char data[MAX_LENGTH];
             //size_t reply_length = boost::asio::read(s, boost::asio::buffer(reply, MAX_LENGTH));
             boost::system::error_code error;
             size_t length = s.read_some(boost::asio::buffer(data), error);
             if (length > 0) {
-                std::cout << "C: Received: " << data << std::endl;
-                Protocol received;
                 try {
                     std::string archive_data(&data[0], length);
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
-                    archive >> received;
+		    archive >> received;
 		    std::cout<<"C: Protocol: "<<received.id<<" "<<received.header<<" "<<received.payload<<std::endl;
                 }
                 catch (std::exception& e) {
                     // Unable to decode data.
+		    std::cout<<"smth goes wrong"<<std::endl;
                     boost::system::error_code error(boost::asio::error::invalid_argument);
-                    return;
+                    std::cout<<e.what()<<std::endl;
+		    return;
                 }
-                //TODO w zaleznosci co odebralismy wykonujemy...
+
 		if(received.header == HELLO) {
-		    //TODO
+		    std::cout<<"C: Received HELLO"<<std::endl;
+		    Protocol rulelist;
+		    rulelist.header = RULELIST;
+		    //TODO payload
+		    send(rulelist);
 		}
 		else if(received.header == OK) {
-		    //TODO
+		    std::cout<<"C: Received OK";
+		}
+		else if(received.header == ERR) {
+		    std::cout<<"C: Received ERR"<<std::endl;
+		    //TODO retrasmisja
 		}
 		else if(received.header == ADD) {
-		    //TODO
+		    std::cout<< "C: Received ADD"<<std::endl;
+		    Protocol status;
+		    Rule rule; //TODO parsing received Rule
+		    if(PythonAdapter::getInstance()->addRule(rule))
+		        status.header = ADDED;
+		    else
+			status.header = ERR;
+		    send(status);
 		}
 		else if(received.header == DEL) {
-		    //TODO
+		    std::cout<<"C: Received DEL"<<std::endl;
+		    Protocol status;
+		    Rule rule; //TODO parsing received rule
+		    if(PythonAdapter::getInstance()->deleteRule(rule))
+			status.header = DELED;
+		    else
+			status.header = ERR;
+		    send(status);
+		}
+		else {
+		    std::cout<<"not supported"<<std::endl;
 		}
             }
 
