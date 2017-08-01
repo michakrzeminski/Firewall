@@ -20,18 +20,18 @@ PythonAdapter* PythonAdapter::getInstance() {
     return instance;
 }
 
-bool PythonAdapter::addRule(Rule rule)
+bool PythonAdapter::addRule(std::string rule)
 {
 	auto module = py::module::import("IptablesAdapter");
-	auto result = module.attr("addRule")(rule.toString());
+	auto result = module.attr("addRule")(rule);
 	auto ret = result.cast<bool>();
 	return ret;
 }
 
-bool PythonAdapter::deleteRule(Rule rule)
+bool PythonAdapter::deleteRule(std::string rule)
 {
 	auto module = py::module::import("IptablesAdapter");
-	auto result = module.attr("deleteRule")(rule.toString());
+	auto result = module.attr("deleteRule")(rule);
 	auto ret = result.cast<bool>();
 	return ret;
 }

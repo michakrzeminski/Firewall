@@ -6,7 +6,6 @@
 #include <pybind11/stl.h>
 #include <iostream>
 #include <string>
-#include "Rule.h"
 
 namespace py = pybind11;
 
@@ -14,8 +13,8 @@ class PythonAdapter {
 public:
     static PythonAdapter* getInstance();
     void init();
-    bool addRule(Rule rule);
-    bool deleteRule(Rule rule);
+    bool addRule(std::string rule);
+    bool deleteRule(std::string rule);
     void printAllRules();
     std::vector<std::string> getRules();
 private:

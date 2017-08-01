@@ -86,7 +86,7 @@ void Client::read() {
 		else if(received.header == ADD) {
 		    std::cout<< "C: Received ADD"<<std::endl;
 		    Protocol status;
-		    Rule rule; //TODO parsing received Rule
+		    std::string rule; //TODO received Rule
 		    if(PythonAdapter::getInstance()->addRule(rule))
 		        status.header = ADDED;
 		    else
@@ -96,7 +96,7 @@ void Client::read() {
 		else if(received.header == DEL) {
 		    std::cout<<"C: Received DEL"<<std::endl;
 		    Protocol status;
-		    Rule rule; //TODO parsing received rule
+		    std::string rule; //TODO received rule
 		    if(PythonAdapter::getInstance()->deleteRule(rule))
 			status.header = DELED;
 		    else
