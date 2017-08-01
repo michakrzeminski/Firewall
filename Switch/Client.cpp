@@ -51,6 +51,7 @@ void Client::read() {
             size_t length = s.read_some(boost::asio::buffer(data), error);
             if (length > 0) {
                 try {
+		    std::cout<<"C: Rec"<<data<<std::endl;
                     std::string archive_data(&data[0], length);
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
@@ -69,7 +70,10 @@ void Client::read() {
 		    std::cout<<"C: Received HELLO"<<std::endl;
 		    Protocol rulelist;
 		    rulelist.header = RULELIST;
-		    //TODO payload
+		    rulelist.list = PythonAdapter::getInstance()->getRules();
+		    for(auto t : rulelist.list)
+			std::cout<< t <<std::endl;
+		    std::cout<<"C:"<<std::endl;
 		    send(rulelist);
 		}
 		else if(received.header == OK) {

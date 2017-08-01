@@ -3,6 +3,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
 #include <pybind11/eval.h>
+#include <pybind11/stl.h>
 #include <iostream>
 #include <string>
 #include "Rule.h"
@@ -16,7 +17,7 @@ public:
     bool addRule(Rule rule);
     bool deleteRule(Rule rule);
     void printAllRules();
-    //const py::list getAllRules();
+    std::vector<std::string> getRules();
 private:
     PythonAdapter();
     static PythonAdapter* instance;

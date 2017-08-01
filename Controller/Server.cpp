@@ -38,11 +38,11 @@ void Server::session(tcp::socket sock) {
         for (;;) {
             Protocol protocol;
             char data[MAX_LENGTH];
-
             boost::system::error_code error;
             size_t length = sock.read_some(boost::asio::buffer(data), error);
             if (length > 0) {
                 try {
+		    //std::cout<<"S: data"<<data<<std::endl;
                     std::string archive_data(&data[0], length);
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
@@ -64,7 +64,9 @@ void Server::session(tcp::socket sock) {
                     send(&sock, hello);
                 }
 		else if(protocol.header == RULELIST) {
-		    //TODO wypisac ta liste i sobie gdzies zapisac
+		    std::cout<<"S: Received RULELIST"<<std::endl;
+		    for(auto t : protocol.list)
+			std::cout << t << std::endl;
 		    send(&sock, Protocol(OK));
 		}
 		else if(protocol.header == CHECK) {
@@ -98,11 +100,11 @@ void Server::session(tcp::socket sock) {
 
 void Server::send(tcp::socket* sock, Protocol toSend) {
     try {
-        std::cout << "S: Sending ..." << std::endl;
         std::ostringstream archive_stream;
         boost::archive::text_oarchive archive(archive_stream);
         archive << toSend;
         auto outbound_data_ = archive_stream.str();
+	std::cout<<"S: sending"<< outbound_data_ <<std::endl;
         boost::asio::write(*sock, boost::asio::buffer(outbound_data_, outbound_data_.length()));
     }
     catch (std::exception& e) {

@@ -78,4 +78,27 @@ def printAllRules(object):
 			print(" ")
 	return True
 
-#def resetToDefault():
+def getRules():
+	list = []
+	table = iptc.Table(iptc.Table.FILTER)
+	for chain in table.chains:
+		for rule in chain.rules:
+			list.append(toString(rule))
+	return list
+
+def toString(rule):
+	temp = ""
+	temp = rule.chain.name + "/" + rule.target.name
+	if rule.protocol:
+		temp = temp + "/" + rule.protocol
+	if rule.src:
+		temp = temp + "/" + rule.src
+	if rule.dst:
+		temp = temp + "/" + rule.dst
+	if rule.in_interface:
+		temp = temp + "/" + rule.in_interface
+	if rule.out_interface:
+		temp = temp + "/" + rule.out_interface
+	for match in rule.matches:
+		temp = temp + "/" + str(match.name) + "/" + str(match.state) + "/" + str(match.sport) +"/" + str(match.dport) + "/" + str(match.src_range) + "/" + str(match.dst_range) + "/" + str(match.mac_source)
+	return temp
