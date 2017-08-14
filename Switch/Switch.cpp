@@ -17,7 +17,7 @@ Switch::Switch() {
 
 void Switch::init() {
     std::cout << "switch init" <<std::endl;
-    //std::thread(&Switch::sniff, this).detach();
+    std::thread(&Switch::sniff, this).detach();
     PythonAdapter::getInstance();
     Client * client = Client::getInstance();
     client->init();
@@ -38,6 +38,15 @@ bool Switch::callback(Tins::PDU &pdu) {
 	//Tins::Ipv4Address lo("127.0.0.1");
 	//Tins::HWAddress<6> hw_addr("01:de:22:01:09:af");
 	//i porownywac to co dostajemy moze z pula zapisana
+try {
+    std::string packet = ip.src_addr().to_string();
+    Protocol toCheck(CHECK);
+    toCheck.payload = packet;
+    Client::getInstance()->send(toCheck);
+}
+catch(std::exception &e) {
+    std::cout<<e.what();
+}
     return true;
 	//zeby zakonczyc sniffowanie
 	//return false

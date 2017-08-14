@@ -71,7 +71,8 @@ void Server::session(tcp::socket sock) {
 		}
 		else if(protocol.header == CHECK) {
 		    //TODO analiza pakietu i dezycja
-            	    if (true)
+            	    std::cout << "S: Received CHECK" << std::endl;
+		    if (true)
                 	send(&sock, Protocol(ADD));
             	    else
                 	send(&sock, Protocol(DEL));
