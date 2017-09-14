@@ -10,9 +10,9 @@ Protocol::Protocol(ProtocolHeader ph) {
     header = ph;
 }
 
-Protocol::Protocol(ProtocolHeader ph, std::vector<std::string> l, std::string pl) {
+Protocol::Protocol(ProtocolHeader ph, std::vector<std::string> l, std::string rl) {
     id = ++counter;
     header = ph;
     list = l;
-    payload = pl;
+    rule = rl;
 }

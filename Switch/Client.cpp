@@ -56,7 +56,7 @@ void Client::read() {
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
 		    archive >> received;
-		    std::cout<<"C: Protocol: "<<received.id<<" "<<received.header<<" "<<received.payload<<std::endl;
+		    std::cout<<"C: Protocol: "<<received.id<<" "<<received.header<<" "<<received.rule<<std::endl;
                 }
                 catch (std::exception& e) {
                     // Unable to decode data.
@@ -85,23 +85,19 @@ void Client::read() {
 		}
 		else if(received.header == ADD) {
 		    std::cout<< "C: Received ADD"<<std::endl;
-		    Protocol status;
-		    std::string rule; //TODO received Rule
-		    if(PythonAdapter::getInstance()->addRule(rule))
-		        status.header = ADDED;
+		    if(PythonAdapter::getInstance()->addRule(received.rule))
+		        received.header = ADDED;
 		    else
-			status.header = ERR;
-		    send(status);
+			received.header = ERR;
+		    send(received); //sending the same message id but empty only with status
 		}
 		else if(received.header == DEL) {
 		    std::cout<<"C: Received DEL"<<std::endl;
-		    Protocol status;
-		    std::string rule; //TODO received rule
-		    if(PythonAdapter::getInstance()->deleteRule(rule))
-			status.header = DELED;
+		    if(PythonAdapter::getInstance()->deleteRule(received.rule))
+			received.header = DELED;
 		    else
-			status.header = ERR;
-		    send(status);
+			received.header = ERR;
+		    send(received); //sending the same message id but empty only status
 		}
 		else {
 		    std::cout<<"not supported"<<std::endl;

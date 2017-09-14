@@ -65,7 +65,7 @@ void Switch::bufferHandling() {
         packetBuffer.pop_front();
         try {
             Protocol toCheck(CHECK);
-            toCheck.payload = tempPacket;
+            toCheck.packet = &tempPacket;
             Client::getInstance()->send(toCheck);
         }
         catch(std::exception &e) {
