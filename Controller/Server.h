@@ -13,6 +13,8 @@ public:
     void init();
     void session(tcp::socket sock);
     void send(tcp::socket* sock, Protocol toSend);
+    bool analyzePacket(Tins::IP &ip);
+    std::string generateRule(Tins::IP &ip);
 private:
     Server();
     static Server* instance;

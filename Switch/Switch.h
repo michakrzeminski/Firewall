@@ -1,15 +1,11 @@
 #ifndef SWITCH_H
 #define SWITCH_H
 #include "Client.h"
+#include "PacketDecision.h"
+#include <chrono>
 #include <thread>
-#include <tins/tins.h>
 #include <deque>
 #include <vector>
-
-struct PacketMap{
-    Tins::IP &ip;
-    Decision dec;
-};
 
 class Switch {
 public:
@@ -24,6 +20,6 @@ private:
     bool callback(Tins::PDU &pdu);
     bool analyzePacket(const Tins::IP &ip);
     std::deque<Tins::IP> packetBuffer;
-    std::vector<PacketMap> packetMap;
+    std::vector<PacketDecision> packetMap;
 };
 #endif

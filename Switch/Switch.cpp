@@ -36,13 +36,11 @@ void Switch::sniff() {
 bool Switch::callback(Tins::PDU &pdu) {
     const Tins::IP &ip = pdu.rfind_pdu<Tins::IP>();
     std::cout<< "from "<<ip.src_addr() <<" to "<<ip.dst_addr()<<" protocol "<<ip.protocol()<<std::endl;
-	//miec jakos zebrana pule adresow czy cos
-	//Tins::Ipv4Address lo("127.0.0.1");
-	//Tins::HWAddress<6> hw_addr("01:de:22:01:09:af");
-	//i porownywac to co dostajemy moze z pula zapisana
+
     if(!analyzePacket(ip)) {
-        //do buffora
+        //do bufora
         if(packetBuffer.size() <= NUM_PACKETS) {
+            std::cout<<"do bufora"<<std::endl;
             packetBuffer.push_back(ip);
         }
     }
@@ -53,13 +51,20 @@ bool Switch::callback(Tins::PDU &pdu) {
 
 bool Switch::analyzePacket(const Tins::IP &ip) {
     for(auto i : packetMap) {
-        if(i.ip.src_addr() == ip.src_addr() && i.ip.dst_addr() == ip.dst_addr() && i.ip.protocol() == ip.protocol())
+        if((i.ip->src_addr() == ip.src_addr()) && (i.ip->dst_addr() == ip.dst_addr()) && (i.ip->protocol() == ip.protocol()))
             return true;
     }
+    std::cout<<"false wiec dodajemy do mapy ze waiting"<<std::endl;
+    PacketDecision temp;
+    temp.ip = const_cast<Tins::IP*>(&ip);
+    temp.dec = WAITING;
+    packetMap.push_back(temp);
     return false;
 }
 
 void Switch::bufferHandling() {
+    while(true) { //TODO delete busy waiting
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     if(packetBuffer.size() != 0 ) {
         auto tempPacket = packetBuffer.front();
         packetBuffer.pop_front();
@@ -69,7 +74,8 @@ void Switch::bufferHandling() {
             Client::getInstance()->send(toCheck);
         }
         catch(std::exception &e) {
-            std::cout<<e.what();
+            std::cout<<"Handling: "<<e.what()<<std::endl;
         }
+    }
     }
 }

@@ -37,7 +37,7 @@ void Client::send(Protocol toSend) {
         boost::asio::write(s, boost::asio::buffer(outbound_data_, outbound_data_.length()));
     }
     catch (std::exception& e) {
-        std::cout << "Exception: " << e.what() << "\n";
+        std::cout << "Cient Exception: " << e.what() << "\n";
     }
 }
 

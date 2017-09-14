@@ -1,4 +1,5 @@
 #include "Server.h"
+#include "Rule.h"
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
@@ -47,7 +48,7 @@ void Server::session(tcp::socket sock) {
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
                     archive >> protocol;
-		    std::cout<<"Protocol: "<<protocol.id<<" "<<protocol.header<<" "<<protocol.payload<<std::endl;
+		    std::cout<<"Protocol: "<<protocol.id<<" "<<protocol.header<<" "<<protocol.rule<<std::endl;
                 }
                 catch (std::exception& e) {
                     // Unable to decode data.
@@ -72,10 +73,18 @@ void Server::session(tcp::socket sock) {
 		else if(protocol.header == CHECK) {
 		    //TODO analiza pakietu i dezycja
             	    std::cout << "S: Received CHECK" << std::endl;
-		    if (true)
-                	send(&sock, Protocol(ADD));
-            	    else
-                	send(&sock, Protocol(DEL));
+                    try{Tins::IP &ip = protocol.packet->rfind_pdu<Tins::IP>();
+                    std::cout<<"TEST: "<<ip.protocol()<<" "<<ip.src_addr()<<" "<<ip.dst_addr()<<std::endl;
+		    if (analyzePacket(ip)) {
+                        Protocol toSend(ADD);
+                        toSend.rule = generateRule(ip);
+                	send(&sock, toSend);
+                    }
+            	    else {
+                        //default policy is DROP so packet will be dropped
+                	//send(&sock, Protocol(DEL));
+                    }
+		    } catch(std::exception &e) {std::cout<<"S: err"<<e.what();}
 		}
 		else if(protocol.header == ADDED) {
            	    std::cout << "Rule ADDED" << std::endl;
@@ -111,4 +120,20 @@ void Server::send(tcp::socket* sock, Protocol toSend) {
     catch (std::exception& e) {
         std::cout << "Exception: " << e.what() << "\n";
     }
+}
+
+bool Server::analyzePacket(Tins::IP &ip) {
+    //TODO
+    return true;
+}
+
+std::string Server::generateRule(Tins::IP &ip) {
+    Rule rule;
+    rule.chain = "?";
+    rule.target = "ACCEPT";
+    rule.protocol = ip.protocol();
+    rule.src = ip.src_addr();
+    rule.dst = ip.dst_addr();
+    //TODO more
+    return rule.toString();
 }
