@@ -73,18 +73,22 @@ void Server::session(tcp::socket sock) {
 		else if(protocol.header == CHECK) {
 		    //TODO analiza pakietu i dezycja
             	    std::cout << "S: Received CHECK" << std::endl;
-                    try{Tins::IP &ip = protocol.packet->rfind_pdu<Tins::IP>();
-                    std::cout<<"TEST: "<<ip.protocol()<<" "<<ip.src_addr()<<" "<<ip.dst_addr()<<std::endl;
+                    try {
+                    Tins::IP &ip = protocol.packet;
+                    std::cout<<"Packet: "<<ip.protocol()<<" "<<ip.src_addr()<<" "<<ip.dst_addr()<<std::endl;
 		    if (analyzePacket(ip)) {
                         Protocol toSend(ADD);
                         toSend.rule = generateRule(ip);
-                	send(&sock, toSend);
+                        send(&sock, toSend);
                     }
             	    else {
                         //default policy is DROP so packet will be dropped
                 	//send(&sock, Protocol(DEL));
                     }
-		    } catch(std::exception &e) {std::cout<<"S: err"<<e.what();}
+		    }
+                     catch(...) {
+                         std::cout<<"S: pdu_not_found";
+                     }
 		}
 		else if(protocol.header == ADDED) {
            	    std::cout << "Rule ADDED" << std::endl;
@@ -118,7 +122,7 @@ void Server::send(tcp::socket* sock, Protocol toSend) {
         boost::asio::write(*sock, boost::asio::buffer(outbound_data_, outbound_data_.length()));
     }
     catch (std::exception& e) {
-        std::cout << "Exception: " << e.what() << "\n";
+        std::cout << "S: Exception: " << e.what() << "\n";
     }
 }
 
@@ -129,11 +133,27 @@ bool Server::analyzePacket(Tins::IP &ip) {
 
 std::string Server::generateRule(Tins::IP &ip) {
     Rule rule;
-    rule.chain = "?";
+    rule.chain = "INPUT";
     rule.target = "ACCEPT";
-    rule.protocol = ip.protocol();
-    rule.src = ip.src_addr();
-    rule.dst = ip.dst_addr();
+    rule.protocol = "None";
+    //std::string temp = std::to_string((int)ip.protocol());
+    rule.protocol = convertProtocol(ip.protocol());
+    rule.src = ip.src_addr().to_string();
+    rule.dst = ip.dst_addr().to_string();
     //TODO more
     return rule.toString();
+}
+
+std::string Server::convertProtocol(uint8_t prot) {
+    //TODO numerki na stringi
+    int prot_int = (int) prot;
+    switch(prot) {
+        case 6: {
+            return "tcp";
+            break;
+        }
+        default: {
+            return "None";
+        }
+    }
 }

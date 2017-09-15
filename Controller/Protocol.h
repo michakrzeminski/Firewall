@@ -17,7 +17,7 @@ public:
     ProtocolHeader header;
     std::vector<std::string> list;
     std::string rule;
-    Tins::PDU *packet;
+    Tins::IP packet;
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version) {
         ar & id;

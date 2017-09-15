@@ -35,7 +35,7 @@ void Switch::sniff() {
 
 bool Switch::callback(Tins::PDU &pdu) {
     const Tins::IP &ip = pdu.rfind_pdu<Tins::IP>();
-    std::cout<< "from "<<ip.src_addr() <<" to "<<ip.dst_addr()<<" protocol "<<ip.protocol()<<std::endl;
+    //std::cout<< "from "<<ip.src_addr() <<" to "<<ip.dst_addr()<<" protocol "<<ip.protocol()<<std::endl;
 
     if(!analyzePacket(ip)) {
         //do bufora
@@ -70,7 +70,7 @@ void Switch::bufferHandling() {
         packetBuffer.pop_front();
         try {
             Protocol toCheck(CHECK);
-            toCheck.packet = &tempPacket;
+            toCheck.packet = tempPacket;
             Client::getInstance()->send(toCheck);
         }
         catch(std::exception &e) {
