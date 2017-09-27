@@ -135,25 +135,9 @@ std::string Server::generateRule(Tins::IP &ip) {
     Rule rule;
     rule.chain = "INPUT";
     rule.target = "ACCEPT";
-    rule.protocol = "None";
-    //std::string temp = std::to_string((int)ip.protocol());
-    rule.protocol = convertProtocol(ip.protocol());
+    rule.protocol = ip.protocol();
     rule.src = ip.src_addr().to_string();
     rule.dst = ip.dst_addr().to_string();
     //TODO more
     return rule.toString();
-}
-
-std::string Server::convertProtocol(uint8_t prot) {
-    //TODO numerki na stringi
-    int prot_int = (int) prot;
-    switch(prot) {
-        case 6: {
-            return "tcp";
-            break;
-        }
-        default: {
-            return "None";
-        }
-    }
 }

@@ -17,6 +17,7 @@ Switch::Switch() {
 
 void Switch::init() {
     std::cout << "switch init" <<std::endl;
+    //TODO fill in packetMap
     std::thread(&Switch::sniff, this).detach();
     PythonAdapter::getInstance();
     Client * client = Client::getInstance();
@@ -35,7 +36,7 @@ void Switch::sniff() {
 
 bool Switch::callback(Tins::PDU &pdu) {
     const Tins::IP &ip = pdu.rfind_pdu<Tins::IP>();
-    //std::cout<< "from "<<ip.src_addr() <<" to "<<ip.dst_addr()<<" protocol "<<ip.protocol()<<std::endl;
+    std::cout<< "from "<<ip.src_addr() <<" to "<<ip.dst_addr()<<" protocol "<<ip.protocol()<<std::endl;
 
     if(!analyzePacket(ip)) {
         //do bufora
@@ -51,8 +52,10 @@ bool Switch::callback(Tins::PDU &pdu) {
 
 bool Switch::analyzePacket(const Tins::IP &ip) {
     for(auto i : packetMap) {
-        if((i.ip->src_addr() == ip.src_addr()) && (i.ip->dst_addr() == ip.dst_addr()) && (i.ip->protocol() == ip.protocol()))
+        if((i.ip->src_addr() == ip.src_addr()) && (i.ip->dst_addr() == ip.dst_addr()) && (i.ip->protocol() == ip.protocol())) {
+            std::cout<<"jest juz"<<std::endl;
             return true;
+        }
     }
     std::cout<<"false wiec dodajemy do mapy ze waiting"<<std::endl;
     PacketDecision temp;

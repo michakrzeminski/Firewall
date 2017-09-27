@@ -21,7 +21,7 @@ bool Client::init() {
         boost::asio::connect(s, resolver.resolve({ HOST, PORT }));
     }
     catch (std::exception& e) {
-        std::cout << "Exception: " << e.what() << "\n";
+        std::cout << "C: Exception: " << e.what() << "\n";
         return false;
     }
     return true;
@@ -29,15 +29,15 @@ bool Client::init() {
 
 void Client::send(Protocol toSend) {
     try {
-	std::cout<<"C: Sending..."<<std::endl;
         std::ostringstream archive_stream;
         boost::archive::text_oarchive archive(archive_stream);
         archive << toSend;
         auto outbound_data_ = archive_stream.str();
+        std::cout<<"C: Sending "<<outbound_data_<<std::endl;
         boost::asio::write(s, boost::asio::buffer(outbound_data_, outbound_data_.length()));
     }
     catch (std::exception& e) {
-        std::cout << "Cient Exception: " << e.what() << "\n";
+        std::cout << "C: Exception: " << e.what() << "\n";
     }
 }
 
@@ -56,11 +56,11 @@ void Client::read() {
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
 		    archive >> received;
-		    std::cout<<"C: Protocol: "<<received.id<<" "<<received.header<<" "<<received.rule<<std::endl;
+		    //std::cout<<"C: Protocol: "<<received.id<<" "<<received.header<<" "<<received.rule<<std::endl;
                 }
                 catch (std::exception& e) {
                     // Unable to decode data.
-		    std::cout<<"smth goes wrong"<<std::endl;
+		    std::cout<<"C: smth goes wrong"<<std::endl;
                     boost::system::error_code error(boost::asio::error::invalid_argument);
                     std::cout<<e.what()<<std::endl;
 		    return;
@@ -100,7 +100,7 @@ void Client::read() {
 		    send(received); //sending the same message id but empty only status
 		}
 		else {
-		    std::cout<<"not supported"<<std::endl;
+		    std::cout<<"C: not supported"<<std::endl;
 		}
             }
 
@@ -111,6 +111,6 @@ void Client::read() {
         }
     }
     catch (std::exception& e) {
-        std::cout << "Exception: " << e.what() << "\n";
+        std::cout << "C: Exception: " << e.what() << "\n";
     }
 }

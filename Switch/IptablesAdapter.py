@@ -12,7 +12,7 @@ def addRule(object):
 	rule = iptc.Rule()
 	chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), list[0])
 	rule.target = iptc.Target(rule, list[1])
-	if list[2] != "None":
+	if list[2] != 255:
 		rule.protocol = list[2]
 	if list[3] != "None":
 		rule.src = list[3]

@@ -15,7 +15,6 @@ public:
     void send(tcp::socket* sock, Protocol toSend);
     bool analyzePacket(Tins::IP &ip);
     std::string generateRule(Tins::IP &ip);
-    std::string convertProtocol(uint8_t prot);
 private:
     Server();
     static Server* instance;
