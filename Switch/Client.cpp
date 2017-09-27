@@ -13,7 +13,7 @@ Client* Client::getInstance() {
 }
 
 Client::Client() : s(io_service), resolver(io_service) {
-    std::cout << "creating tcp client" << std::endl;
+    std::cout << "C: Creating tcp client" << std::endl;
 }
 
 bool Client::init() {
@@ -33,7 +33,7 @@ void Client::send(Protocol toSend) {
         boost::archive::text_oarchive archive(archive_stream);
         archive << toSend;
         auto outbound_data_ = archive_stream.str();
-        std::cout<<"C: Sending "<<outbound_data_<<std::endl;
+        std::cout<<"C: Sending: "<< toSend.header << " " << outbound_data_<<std::endl;
         boost::asio::write(s, boost::asio::buffer(outbound_data_, outbound_data_.length()));
     }
     catch (std::exception& e) {
@@ -51,7 +51,7 @@ void Client::read() {
             size_t length = s.read_some(boost::asio::buffer(data), error);
             if (length > 0) {
                 try {
-		    std::cout<<"C: Rec"<<data<<std::endl;
+		    //std::cout<<"C: Rec"<<data<<std::endl;
                     std::string archive_data(&data[0], length);
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
@@ -60,31 +60,31 @@ void Client::read() {
                 }
                 catch (std::exception& e) {
                     // Unable to decode data.
-		    std::cout<<"C: smth goes wrong"<<std::endl;
+		    //std::cout<<"C: smth goes wrong"<<std::endl;
                     boost::system::error_code error(boost::asio::error::invalid_argument);
-                    std::cout<<e.what()<<std::endl;
+                    std::cout<<"C: Exception: "<<e.what()<<std::endl;
 		    return;
                 }
 
 		if(received.header == HELLO) {
-		    std::cout<<"C: Received HELLO"<<std::endl;
+		    std::cout<<"C: Received: HELLO"<<std::endl;
 		    Protocol rulelist;
 		    rulelist.header = RULELIST;
 		    rulelist.list = PythonAdapter::getInstance()->getRules();
-		    for(auto t : rulelist.list)
-			std::cout<< t <<std::endl;
-		    std::cout<<"C:"<<std::endl;
+		    //for(auto t : rulelist.list)
+			//std::cout<< t <<std::endl;
+		    //std::cout<<"C:"<<std::endl;
 		    send(rulelist);
 		}
 		else if(received.header == OK) {
-		    std::cout<<"C: Received OK";
+		    std::cout<<"C: Received: OK"<<std::endl;
 		}
 		else if(received.header == ERR) {
-		    std::cout<<"C: Received ERR"<<std::endl;
+		    std::cout<<"C: Received: ERR"<<std::endl;
 		    //TODO retrasmisja
 		}
 		else if(received.header == ADD) {
-		    std::cout<< "C: Received ADD"<<std::endl;
+		    std::cout<< "C: Received: ADD "<<received.rule<<std::endl;
 		    if(PythonAdapter::getInstance()->addRule(received.rule))
 		        received.header = ADDED;
 		    else
@@ -92,7 +92,7 @@ void Client::read() {
 		    send(received); //sending the same message id but empty only with status
 		}
 		else if(received.header == DEL) {
-		    std::cout<<"C: Received DEL"<<std::endl;
+		    std::cout<<"C: Received DEL "<<received.rule<<std::endl;
 		    if(PythonAdapter::getInstance()->deleteRule(received.rule))
 			received.header = DELED;
 		    else

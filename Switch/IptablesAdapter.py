@@ -2,7 +2,7 @@ import iptc
 import libPythonAdapter
 
 def addRule(object):
-	print "Adding rule: "
+	print "Py: Adding rule: "
 	print object
 	list = object.split('/')
 	list_size = len(list)
@@ -40,7 +40,7 @@ def addRule(object):
 		return False
 
 def deleteRule(object):
-	print "Deleting rule: "
+	print "Py: Deleting rule: "
 	print object
 	list = object.split('/')
 	rule = iptc.Rule()

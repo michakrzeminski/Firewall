@@ -30,7 +30,7 @@ void Server::init() {
         }
     }
     catch (std::exception& e) {
-        std::cerr << "Exception in thread: " << e.what() << "\n";
+        std::cerr << "S: Exception: " << e.what() << "\n";
     }
 }
 
@@ -43,21 +43,21 @@ void Server::session(tcp::socket sock) {
             size_t length = sock.read_some(boost::asio::buffer(data), error);
             if (length > 0) {
                 try {
-		    //std::cout<<"S: data"<<data<<std::endl;
                     std::string archive_data(&data[0], length);
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
                     archive >> protocol;
-		    std::cout<<"Protocol: "<<protocol.id<<" "<<protocol.header<<" "<<protocol.rule<<std::endl;
+		    //std::cout<<"Protocol: "<<protocol.id<<" "<<protocol.header<<" "<<protocol.rule<<std::endl;
                 }
                 catch (std::exception& e) {
                     // Unable to decode data.
                     boost::system::error_code error(boost::asio::error::invalid_argument);
-                    std::cout << e.what() << std::endl;
+                    std::cout << "S: Exception: "<<e.what() << std::endl;
                     return;
                 }
 
                 if (protocol.header == HELLO) {
+                    std::cout << "S: Received: HELLO" <<std::endl;
                     std::cout << "Client: " << counter << " Endpoint: " << sock.remote_endpoint() << std::endl;
                     clients.insert(std::pair<int, boost::asio::ip::tcp::endpoint>(++counter, sock.remote_endpoint()));
                     //odsylamy HELLO
@@ -65,36 +65,36 @@ void Server::session(tcp::socket sock) {
                     send(&sock, hello);
                 }
 		else if(protocol.header == RULELIST) {
-		    std::cout<<"S: Received RULELIST"<<std::endl;
+		    std::cout<<"S: Received: RULELIST"<<std::endl;
 		    for(auto t : protocol.list)
 			std::cout << t << std::endl;
 		    send(&sock, Protocol(OK));
 		}
 		else if(protocol.header == CHECK) {
 		    //TODO analiza pakietu i dezycja
-            	    std::cout << "S: Received CHECK" << std::endl;
+            	    std::cout << "S: Received: CHECK: ";
                     try {
-                    Tins::IP &ip = protocol.packet;
-                    std::cout<<"Packet: "<<ip.protocol()<<" "<<ip.src_addr()<<" "<<ip.dst_addr()<<std::endl;
-		    if (analyzePacket(ip)) {
-                        Protocol toSend(ADD);
-                        toSend.rule = generateRule(ip);
-                        send(&sock, toSend);
-                    }
-            	    else {
+                        Tins::IP &ip = protocol.packet;
+                        std::cout<<"Packet: "<<ip.protocol()<<" "<<ip.src_addr()<<" "<<ip.dst_addr()<<std::endl;
+		        if (analyzePacket(ip)) {
+                            Protocol toSend(ADD);
+                            toSend.rule = generateRule(ip);
+                            send(&sock, toSend);
+                        }
+            	        else {
                         //default policy is DROP so packet will be dropped
                 	//send(&sock, Protocol(DEL));
-                    }
+                        }
 		    }
                      catch(...) {
                          std::cout<<"S: pdu_not_found";
                      }
 		}
 		else if(protocol.header == ADDED) {
-           	    std::cout << "Rule ADDED" << std::endl;
+           	    std::cout << "S: Received: ADDED" << std::endl;
 		}
 		else if(protocol.header == DELED) {
-            	    std::cout << "Rule DELED" << std::endl;
+            	    std::cout << "S: Received: DELED" << std::endl;
 		}
             }
 
@@ -108,7 +108,7 @@ void Server::session(tcp::socket sock) {
         }
     }
     catch (std::exception& e) {
-        std::cout << "Exception in thread: " << e.what() << "\n";
+        std::cout << "S: Exception: " << e.what() << std::endl;
     }
 }
 
@@ -118,7 +118,7 @@ void Server::send(tcp::socket* sock, Protocol toSend) {
         boost::archive::text_oarchive archive(archive_stream);
         archive << toSend;
         auto outbound_data_ = archive_stream.str();
-	std::cout<<"S: sending"<< outbound_data_ <<std::endl;
+	std::cout<<"S: Sending: "<< toSend.header << " " << outbound_data_ <<std::endl;
         boost::asio::write(*sock, boost::asio::buffer(outbound_data_, outbound_data_.length()));
     }
     catch (std::exception& e) {
