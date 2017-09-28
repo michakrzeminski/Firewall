@@ -6,7 +6,7 @@
 class PacketDecision {
     public:
     PacketDecision() {};
-    Tins::IP *ip;
+    Tins::IP ip;
     Decision dec;
 };
 #endif

@@ -1,5 +1,6 @@
 #include "Switch.h"
 #include "PythonAdapter.h"
+#include <boost/algorithm/string.hpp>
 
 Switch* Switch::instance = nullptr;
 
@@ -17,9 +18,9 @@ Switch::Switch() {
 
 void Switch::init() {
     std::cout << "switch init" <<std::endl;
-    //TODO fill in packetMap
     std::thread(&Switch::sniff, this).detach();
     PythonAdapter::getInstance();
+    fillinPacketmap();
     Client * client = Client::getInstance();
     client->init();
     std::thread(&Client::read, client).detach();
@@ -52,14 +53,14 @@ bool Switch::callback(Tins::PDU &pdu) {
 
 bool Switch::analyzePacket(const Tins::IP &ip) {
     for(auto i : packetMap) {
-        if((i.ip->src_addr() == ip.src_addr()) && (i.ip->dst_addr() == ip.dst_addr()) && (i.ip->protocol() == ip.protocol())) {
+        if((i.ip.src_addr() == ip.src_addr()) && (i.ip.dst_addr() == ip.dst_addr()) && (i.ip.protocol() == ip.protocol())) {
             std::cout<<"jest juz"<<std::endl;
             return true;
         }
     }
     std::cout<<"false wiec dodajemy do mapy ze waiting"<<std::endl;
     PacketDecision temp;
-    temp.ip = const_cast<Tins::IP*>(&ip);
+    temp.ip = ip;
     temp.dec = WAITING;
     packetMap.push_back(temp);
     return false;
@@ -81,4 +82,36 @@ void Switch::bufferHandling() {
         }
     }
     }
+}
+
+void Switch::fillinPacketmap() {
+    std::vector<std::string> rules = PythonAdapter::getInstance()->getRules();
+    //std::cout<<rules.size()<<std::endl;
+    for(auto i : rules) {
+        //wyciagam src i dst i prot i tworze IP
+        std::vector<std::string> splitted;
+        boost::split(splitted, i, [](char c){return c == '/';});
+        Tins::IP packet(splitted[5],splitted[3]);
+        packet.protocol(convertProtocol(splitted[2]));
+//std::cout<<"D1: "<<packet.src_addr()<<" "<<packet.dst_addr()<<" "<<std::to_string(packet.protocol())<<std::endl;
+        PacketDecision temp;
+        temp.ip = packet;
+        temp.dec = ACCEPT;
+        packetMap.push_back(temp);
+    }
+    std::cout<<"D: "<<packetMap.size()<<std::endl;
+    for(auto a : packetMap) {
+        std::cout<<"D: "<<a.ip.src_addr()<<" "<<a.ip.dst_addr()<<" "<<std::to_string(a.ip.protocol())<<std::endl;
+    }
+}
+
+int Switch::convertProtocol(std::string prot) {
+    if(prot.compare("tcp") == 0)
+        return 6;
+    else if(prot.compare("ip") == 0)
+        return 4;
+    else if(prot.compare("udp") == 0)
+        return 17;
+    else
+        return 255;
 }

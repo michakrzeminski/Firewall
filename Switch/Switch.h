@@ -13,6 +13,8 @@ public:
     void init();
     void sniff();
     void bufferHandling();
+    void fillinPacketmap();
+    int convertProtocol(std::string str);
 private:
     Switch();
     static Switch* instance;
