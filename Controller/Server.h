@@ -2,6 +2,7 @@
 #define SERVER_H
 #include <iostream>
 #include <thread>
+#include <mutex>
 #include <boost/asio.hpp>
 #include "Protocol.h"
 
@@ -23,5 +24,6 @@ private:
     std::map<int, boost::asio::ip::tcp::endpoint> clients;
     int counter = 0;
     const char* PORT = "8888";
+    std::mutex mutex_;
 };
 #endif

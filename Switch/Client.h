@@ -1,6 +1,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 #include <iostream>
+#include <mutex>
 #include <boost/asio.hpp>
 #include "Protocol.h"
 
@@ -20,5 +21,6 @@ private:
     tcp::resolver resolver;
     const char* HOST = "127.0.0.1";
     const char* PORT = "8888";
+    std::mutex mutex_;
 };
 #endif

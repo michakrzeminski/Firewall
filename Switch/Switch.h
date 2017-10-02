@@ -18,6 +18,7 @@ public:
 private:
     Switch();
     static Switch* instance;
+    Client* client = Client::getInstance();
     Tins::Sniffer* sniffer;
     bool callback(Tins::PDU &pdu);
     bool analyzePacket(const Tins::IP &ip);

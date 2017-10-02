@@ -24,7 +24,7 @@ public:
 	ar & header;
 	ar & list;
 	ar & rule;
-	ar & boost::serialization::make_nvp("packet", boost::serialization::make_binary_object(&packet, sizeof(packet))); 
+	ar & boost::serialization::make_nvp("packet", boost::serialization::make_binary_object(&packet, sizeof(packet)));
     }
     static int counter;
 };

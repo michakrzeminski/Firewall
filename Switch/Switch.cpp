@@ -21,13 +21,18 @@ void Switch::init() {
     std::thread(&Switch::sniff, this).detach();
     PythonAdapter::getInstance();
     fillinPacketmap();
-    Client * client = Client::getInstance();
+    //Client * client = Client::getInstance();
     client->init();
     std::thread(&Client::read, client).detach();
-    Protocol hello(HELLO);
-    client->send(hello);
-
-    std::thread(&Switch::bufferHandling, this).detach();
+    
+    client->send(Protocol(HELLO));
+    while(true) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    //Protocol hello(HELLO);
+    //client->send(hello);
+    bufferHandling();
+    //std::thread(&Switch::bufferHandling, this).detach();
+    }
 }
 
 void Switch::sniff() {
@@ -37,13 +42,16 @@ void Switch::sniff() {
 
 bool Switch::callback(Tins::PDU &pdu) {
     const Tins::IP &ip = pdu.rfind_pdu<Tins::IP>();
-    std::cout<< "from "<<ip.src_addr() <<" to "<<ip.dst_addr()<<" protocol "<<ip.protocol()<<std::endl;
+    //std::cout<< "from "<<ip.src_addr() <<" to "<<ip.dst_addr()<<" protocol "<<ip.protocol()<<std::endl;
 
     if(!analyzePacket(ip)) {
         //do bufora
         if(packetBuffer.size() <= NUM_PACKETS) {
-            std::cout<<"do bufora"<<std::endl;
+            //std::cout<<"do bufora"<<std::endl;
             packetBuffer.push_back(ip);
+            //Protocol toCheck(CHECK);
+            //toCheck.packet = ip;
+            //client->send(toCheck);
         }
     }
     return true;
@@ -54,11 +62,11 @@ bool Switch::callback(Tins::PDU &pdu) {
 bool Switch::analyzePacket(const Tins::IP &ip) {
     for(auto i : packetMap) {
         if((i.ip.src_addr() == ip.src_addr()) && (i.ip.dst_addr() == ip.dst_addr()) && (i.ip.protocol() == ip.protocol())) {
-            std::cout<<"jest juz"<<std::endl;
+            //std::cout<<"jest juz"<<std::endl;
             return true;
         }
     }
-    std::cout<<"false wiec dodajemy do mapy ze waiting"<<std::endl;
+    //std::cout<<"false wiec dodajemy do mapy ze waiting"<<std::endl;
     PacketDecision temp;
     temp.ip = ip;
     temp.dec = WAITING;
@@ -67,21 +75,21 @@ bool Switch::analyzePacket(const Tins::IP &ip) {
 }
 
 void Switch::bufferHandling() {
-    while(true) { //TODO delete busy waiting
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    //while(true) { //TODO delete busy waiting
+    //std::this_thread::sleep_for(std::chrono::milliseconds(100));
     if(packetBuffer.size() != 0 ) {
         auto tempPacket = packetBuffer.front();
         packetBuffer.pop_front();
         try {
             Protocol toCheck(CHECK);
             toCheck.packet = tempPacket;
-            Client::getInstance()->send(toCheck);
+            client->send(toCheck);
         }
         catch(std::exception &e) {
             std::cout<<"Handling: "<<e.what()<<std::endl;
         }
     }
-    }
+    //}
 }
 
 void Switch::fillinPacketmap() {
@@ -99,10 +107,10 @@ void Switch::fillinPacketmap() {
         temp.dec = ACCEPT;
         packetMap.push_back(temp);
     }
-    std::cout<<"D: "<<packetMap.size()<<std::endl;
-    for(auto a : packetMap) {
-        std::cout<<"D: "<<a.ip.src_addr()<<" "<<a.ip.dst_addr()<<" "<<std::to_string(a.ip.protocol())<<std::endl;
-    }
+    //std::cout<<"D: "<<packetMap.size()<<std::endl;
+    //for(auto a : packetMap) {
+        //std::cout<<"D: "<<a.ip.src_addr()<<" "<<a.ip.dst_addr()<<" "<<std::to_string(a.ip.protocol())<<std::endl;
+    //}
 }
 
 int Switch::convertProtocol(std::string prot) {

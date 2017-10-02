@@ -23,31 +23,33 @@ void Server::init() {
         boost::asio::io_service io_service;
 
         tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), std::atoi(PORT)));
-        for (;;) {
+        //for (;;) {
             tcp::socket sock(io_service);
+        for(;;) {
             a.accept(sock);
             std::thread(&Server::session, this, std::move(sock)).detach();
         }
     }
     catch (std::exception& e) {
-        std::cerr << "S: Exception: " << e.what() << "\n";
+        std::cout << "S: Exception: " << e.what() << std::endl;
     }
 }
 
 void Server::session(tcp::socket sock) {
-    try {
-        for (;;) {
+    for (;;) {
+            std::cout<<"powrot"<<std::endl;
             Protocol protocol;
             char data[MAX_LENGTH];
             boost::system::error_code error;
             size_t length = sock.read_some(boost::asio::buffer(data), error);
+            //size_t length = boost::asio::read(sock, boost::asio::buffer(data, MAX_LENGTH));
             if (length > 0) {
                 try {
                     std::string archive_data(&data[0], length);
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
                     archive >> protocol;
-		    //std::cout<<"Protocol: "<<protocol.id<<" "<<protocol.header<<" "<<protocol.rule<<std::endl;
+		    std::cout<<"S: data: "<<data<<std::endl;
                 }
                 catch (std::exception& e) {
                     // Unable to decode data.
@@ -80,15 +82,16 @@ void Server::session(tcp::socket sock) {
                             Protocol toSend(ADD);
                             toSend.rule = generateRule(ip);
                             send(&sock, toSend);
+                            std::cout<<"wyjscie z senda"<<std::endl;
                         }
             	        else {
                         //default policy is DROP so packet will be dropped
                 	//send(&sock, Protocol(DEL));
                         }
 		    }
-                     catch(...) {
-                         std::cout<<"S: pdu_not_found";
-                     }
+                    catch(...) {
+                        std::cout<<"S: pdu_not_found";
+                    }
 		}
 		else if(protocol.header == ADDED) {
            	    std::cout << "S: Received: ADDED" << std::endl;
@@ -96,20 +99,21 @@ void Server::session(tcp::socket sock) {
 		else if(protocol.header == DELED) {
             	    std::cout << "S: Received: DELED" << std::endl;
 		}
+                else
+                    std::cout<<"S: not supported"<<std::endl;
             }
-
-            if (error == boost::asio::error::eof)
+            std::cout<<"za ifem"<<std::endl;
+            if (error == boost::asio::error::eof) {
+                std::cout<<"Connection closed cleanly by peer"<<std::endl;
                 break; // Connection closed cleanly by peer.
+            }
             else if (error)
                 throw boost::system::system_error(error); // Some other error.
 
             //echoing to client
             //boost::asio::write(sock, boost::asio::buffer(data, length));
+        std::cout<<"koniec"<<std::endl;
         }
-    }
-    catch (std::exception& e) {
-        std::cout << "S: Exception: " << e.what() << std::endl;
-    }
 }
 
 void Server::send(tcp::socket* sock, Protocol toSend) {
@@ -120,9 +124,10 @@ void Server::send(tcp::socket* sock, Protocol toSend) {
         auto outbound_data_ = archive_stream.str();
 	std::cout<<"S: Sending: "<< toSend.header << " " << outbound_data_ <<std::endl;
         boost::asio::write(*sock, boost::asio::buffer(outbound_data_, outbound_data_.length()));
+        std::cout<<"tu juz nie dochodzi"<<std::endl;
     }
-    catch (std::exception& e) {
-        std::cout << "S: Exception: " << e.what() << "\n";
+    catch (...) {
+        std::cout << "S: Exception: " << "\n";
     }
 }
 

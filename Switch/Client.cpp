@@ -34,7 +34,9 @@ void Client::send(Protocol toSend) {
         archive << toSend;
         auto outbound_data_ = archive_stream.str();
         std::cout<<"C: Sending: "<< toSend.header << " " << outbound_data_<<std::endl;
+        mutex_.lock();
         boost::asio::write(s, boost::asio::buffer(outbound_data_, outbound_data_.length()));
+        mutex_.unlock();
     }
     catch (std::exception& e) {
         std::cout << "C: Exception: " << e.what() << "\n";
@@ -74,6 +76,7 @@ void Client::read() {
 		    //for(auto t : rulelist.list)
 			//std::cout<< t <<std::endl;
 		    //std::cout<<"C:"<<std::endl;
+
 		    send(rulelist);
 		}
 		else if(received.header == OK) {
@@ -89,7 +92,7 @@ void Client::read() {
 		        received.header = ADDED;
 		    else
 			received.header = ERR;
-		    send(received); //sending the same message id but empty only with status
+		    //send(received); //sending the same message id but empty only with status
 		}
 		else if(received.header == DEL) {
 		    std::cout<<"C: Received DEL "<<received.rule<<std::endl;
@@ -97,7 +100,7 @@ void Client::read() {
 			received.header = DELED;
 		    else
 			received.header = ERR;
-		    send(received); //sending the same message id but empty only status
+		    //send(received); //sending the same message id but empty only status
 		}
 		else {
 		    std::cout<<"C: not supported"<<std::endl;
