@@ -17,14 +17,21 @@ public:
     ProtocolHeader header;
     std::vector<std::string> list;
     std::string rule;
-    Tins::IP packet;
+    //Tins::IP packet;
+    int packet_prot;
+    std::string packet_src;
+    std::string packet_dst;
+
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version) {
         ar & id;
 	ar & header;
 	ar & list;
 	ar & rule;
-	ar & boost::serialization::make_nvp("packet", boost::serialization::make_binary_object(&packet, sizeof(packet)));
+	//ar & boost::serialization::make_nvp("packet", boost::serialization::make_binary_object(&packet, sizeof(packet)));
+        ar & packet_prot;
+        ar & packet_src;
+        ar & packet_dst;
     }
     static int counter;
 };

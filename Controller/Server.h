@@ -14,8 +14,8 @@ public:
     void init();
     void session(tcp::socket sock);
     void send(tcp::socket* sock, Protocol toSend);
-    bool analyzePacket(Tins::IP &ip);
-    std::string generateRule(Tins::IP &ip);
+    bool analyzePacket(int,std::string,std::string);
+    std::string generateRule(int,std::string,std::string);
 private:
     Server();
     static Server* instance;
@@ -24,6 +24,6 @@ private:
     std::map<int, boost::asio::ip::tcp::endpoint> clients;
     int counter = 0;
     const char* PORT = "8888";
-    std::mutex mutex_;
+    std::mutex m;
 };
 #endif

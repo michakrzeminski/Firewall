@@ -49,7 +49,7 @@ void Server::session(tcp::socket sock) {
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
                     archive >> protocol;
-		    std::cout<<"S: data: "<<data<<std::endl;
+		    std::cout<<"S: data: "<<archive_data<<std::endl;
                 }
                 catch (std::exception& e) {
                     // Unable to decode data.
@@ -75,23 +75,19 @@ void Server::session(tcp::socket sock) {
 		else if(protocol.header == CHECK) {
 		    //TODO analiza pakietu i dezycja
             	    std::cout << "S: Received: CHECK: ";
-                    try {
-                        Tins::IP &ip = protocol.packet;
-                        std::cout<<"Packet: "<<ip.protocol()<<" "<<ip.src_addr()<<" "<<ip.dst_addr()<<std::endl;
-		        if (analyzePacket(ip)) {
+                        //Tins::IP &ip = protocol.packet;
+                        std::cout<<"Packet: "<<protocol.packet_prot<<" "<<protocol.packet_src<<" "<<protocol.packet_dst<<std::endl;
+                        if (analyzePacket(protocol.packet_prot,protocol.packet_src,protocol.packet_dst)) {
                             Protocol toSend(ADD);
-                            toSend.rule = generateRule(ip);
+                            toSend.rule = generateRule(protocol.packet_prot,protocol.packet_src,protocol.packet_dst);
                             send(&sock, toSend);
                             std::cout<<"wyjscie z senda"<<std::endl;
                         }
-            	        else {
+            	        //else {
                         //default policy is DROP so packet will be dropped
                 	//send(&sock, Protocol(DEL));
-                        }
-		    }
-                    catch(...) {
-                        std::cout<<"S: pdu_not_found";
-                    }
+                        //}
+		    //}
 		}
 		else if(protocol.header == ADDED) {
            	    std::cout << "S: Received: ADDED" << std::endl;
@@ -107,9 +103,10 @@ void Server::session(tcp::socket sock) {
                 std::cout<<"Connection closed cleanly by peer"<<std::endl;
                 break; // Connection closed cleanly by peer.
             }
-            else if (error)
+            else if (error) {
+                std::cout<<"err"<<std::endl;
                 throw boost::system::system_error(error); // Some other error.
-
+            }
             //echoing to client
             //boost::asio::write(sock, boost::asio::buffer(data, length));
         std::cout<<"koniec"<<std::endl;
@@ -122,27 +119,29 @@ void Server::send(tcp::socket* sock, Protocol toSend) {
         boost::archive::text_oarchive archive(archive_stream);
         archive << toSend;
         auto outbound_data_ = archive_stream.str();
-	std::cout<<"S: Sending: "<< toSend.header << " " << outbound_data_ <<std::endl;
+	std::cout<<"S: Sending: "<< toSend.header << " " << outbound_data_ <<" "<<outbound_data_.length()<<std::endl;
+        m.lock();
         boost::asio::write(*sock, boost::asio::buffer(outbound_data_, outbound_data_.length()));
         std::cout<<"tu juz nie dochodzi"<<std::endl;
+        m.unlock();
     }
     catch (...) {
         std::cout << "S: Exception: " << "\n";
     }
 }
 
-bool Server::analyzePacket(Tins::IP &ip) {
+bool Server::analyzePacket(int prot, std::string src, std::string dst) {
     //TODO
     return true;
 }
 
-std::string Server::generateRule(Tins::IP &ip) {
+std::string Server::generateRule(int prot, std::string src, std::string dst) {
     Rule rule;
     rule.chain = "INPUT";
     rule.target = "ACCEPT";
-    rule.protocol = ip.protocol();
-    rule.src = ip.src_addr().to_string();
-    rule.dst = ip.dst_addr().to_string();
+    rule.protocol = (uint8_t) prot;
+    rule.src = src;
+    rule.dst = dst;
     //TODO more
     return rule.toString();
 }
