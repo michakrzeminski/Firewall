@@ -24,15 +24,8 @@ void Switch::init() {
     //Client * client = Client::getInstance();
     client->init();
     std::thread(&Client::read, client).detach();
-    
     client->send(Protocol(HELLO));
-    while(true) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    //Protocol hello(HELLO);
-    //client->send(hello);
-    bufferHandling();
-    //std::thread(&Switch::bufferHandling, this).detach();
-    }
+    std::thread(&Switch::bufferHandling, this).detach();
 }
 
 void Switch::sniff() {
@@ -48,10 +41,7 @@ bool Switch::callback(Tins::PDU &pdu) {
         //do bufora
         if(packetBuffer.size() <= NUM_PACKETS) {
             //std::cout<<"do bufora"<<std::endl;
-            packetBuffer.push_back(ip);
-            //Protocol toCheck(CHECK);
-            //toCheck.packet = ip;
-            //client->send(toCheck);
+            packetBuffer.push_back(std::make_tuple((int)ip.protocol(),ip.src_addr().to_string(),ip.dst_addr().to_string()));
         }
     }
     return true;
@@ -75,33 +65,33 @@ bool Switch::analyzePacket(const Tins::IP &ip) {
 }
 
 void Switch::bufferHandling() {
-    //while(true) { //TODO delete busy waiting
-    //std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    for(;;) { //TODO delete busy waiting
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     if(packetBuffer.size() != 0 ) {
         auto tempPacket = packetBuffer.front();
         packetBuffer.pop_front();
         try {
             Protocol toCheck(CHECK);
-            toCheck.packet = tempPacket;
+            toCheck.packet_prot = std::get<0>(tempPacket);
+            toCheck.packet_src = std::get<1>(tempPacket);
+            toCheck.packet_dst = std::get<2>(tempPacket);
             client->send(toCheck);
         }
         catch(std::exception &e) {
             std::cout<<"Handling: "<<e.what()<<std::endl;
         }
     }
-    //}
+    }
 }
 
 void Switch::fillinPacketmap() {
     std::vector<std::string> rules = PythonAdapter::getInstance()->getRules();
-    //std::cout<<rules.size()<<std::endl;
     for(auto i : rules) {
         //wyciagam src i dst i prot i tworze IP
         std::vector<std::string> splitted;
         boost::split(splitted, i, [](char c){return c == '/';});
         Tins::IP packet(splitted[5],splitted[3]);
         packet.protocol(convertProtocol(splitted[2]));
-//std::cout<<"D1: "<<packet.src_addr()<<" "<<packet.dst_addr()<<" "<<std::to_string(packet.protocol())<<std::endl;
         PacketDecision temp;
         temp.ip = packet;
         temp.dec = ACCEPT;

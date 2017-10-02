@@ -6,7 +6,7 @@ def addRule(object):
 	print object
 	list = object.split('/')
 	list_size = len(list)
-	print list_size
+	#print list_size
 	
 	#creating new rule
 	rule = iptc.Rule()

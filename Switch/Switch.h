@@ -3,6 +3,7 @@
 #include "Client.h"
 #include "PacketDecision.h"
 #include <chrono>
+#include <tuple>
 #include <thread>
 #include <deque>
 #include <vector>
@@ -22,7 +23,7 @@ private:
     Tins::Sniffer* sniffer;
     bool callback(Tins::PDU &pdu);
     bool analyzePacket(const Tins::IP &ip);
-    std::deque<Tins::IP> packetBuffer;
+    std::deque<std::tuple<int,std::string,std::string>> packetBuffer;
     std::vector<PacketDecision> packetMap;
 };
 #endif

@@ -70,8 +70,7 @@ void Client::read() {
 
 		if(received.header == HELLO) {
 		    std::cout<<"C: Received: HELLO"<<std::endl;
-		    Protocol rulelist;
-		    rulelist.header = RULELIST;
+		    Protocol rulelist(RULELIST);
 		    rulelist.list = PythonAdapter::getInstance()->getRules();
 		    //for(auto t : rulelist.list)
 			//std::cout<< t <<std::endl;
