@@ -18,7 +18,7 @@ public:
     std::vector<std::string> list;
     std::string rule;
     //Tins::IP packet;
-    int packet_prot;
+    int packet_prot = 0;
     std::string packet_src;
     std::string packet_dst;
 

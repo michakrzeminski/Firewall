@@ -37,7 +37,6 @@ void Server::init() {
 
 void Server::session(tcp::socket sock) {
     for (;;) {
-            std::cout<<"powrot"<<std::endl;
             Protocol protocol;
             char data[MAX_LENGTH];
             boost::system::error_code error;
@@ -49,7 +48,7 @@ void Server::session(tcp::socket sock) {
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
                     archive >> protocol;
-		    std::cout<<"S: data: "<<archive_data<<std::endl;
+    	            std::cout<<"S: data: "<<archive_data<<std::endl;
                 }
                 catch (std::exception& e) {
                     // Unable to decode data.
@@ -73,21 +72,14 @@ void Server::session(tcp::socket sock) {
 		    send(&sock, Protocol(OK));
 		}
 		else if(protocol.header == CHECK) {
-		    //TODO analiza pakietu i dezycja
-            	    std::cout << "S: Received: CHECK: ";
-                        //Tins::IP &ip = protocol.packet;
-                        std::cout<<"Packet: "<<protocol.packet_prot<<" "<<protocol.packet_src<<" "<<protocol.packet_dst<<std::endl;
-                        if (analyzePacket(protocol.packet_prot,protocol.packet_src,protocol.packet_dst)) {
-                            Protocol toSend(ADD);
-                            toSend.rule = generateRule(protocol.packet_prot,protocol.packet_src,protocol.packet_dst);
-                            send(&sock, toSend);
-                            std::cout<<"wyjscie z senda"<<std::endl;
-                        }
-            	        //else {
-                        //default policy is DROP so packet will be dropped
-                	//send(&sock, Protocol(DEL));
-                        //}
-		    //}
+            std::cout << "S: Received: CHECK: ";
+            //Tins::IP &ip = protocol.packet;
+            std::cout<<"Packet: "<<protocol.packet_prot<<" "<<protocol.packet_src<<" "<<protocol.packet_dst<<std::endl;
+            if (analyzePacket(protocol.packet_prot,protocol.packet_src,protocol.packet_dst)) {
+                Protocol toSend(ADD);
+                toSend.rule = generateRule(protocol.packet_prot,protocol.packet_src,protocol.packet_dst);
+                send(&sock, toSend);
+            }
 		}
 		else if(protocol.header == ADDED) {
            	    std::cout << "S: Received: ADDED" << std::endl;
@@ -98,7 +90,6 @@ void Server::session(tcp::socket sock) {
                 else
                     std::cout<<"S: not supported"<<std::endl;
             }
-            std::cout<<"za ifem"<<std::endl;
             if (error == boost::asio::error::eof) {
                 std::cout<<"Connection closed cleanly by peer"<<std::endl;
                 break; // Connection closed cleanly by peer.
@@ -109,7 +100,6 @@ void Server::session(tcp::socket sock) {
             }
             //echoing to client
             //boost::asio::write(sock, boost::asio::buffer(data, length));
-        std::cout<<"koniec"<<std::endl;
         }
 }
 
@@ -119,11 +109,8 @@ void Server::send(tcp::socket* sock, Protocol toSend) {
         boost::archive::text_oarchive archive(archive_stream);
         archive << toSend;
         auto outbound_data_ = archive_stream.str();
-	std::cout<<"S: Sending: "<< toSend.header << " " << outbound_data_ <<" "<<outbound_data_.length()<<std::endl;
-        m.lock();
+	    std::cout<<"S: Sending: "<< toSend.header << " " << outbound_data_ <<" "<<outbound_data_.length()<<std::endl;
         boost::asio::write(*sock, boost::asio::buffer(outbound_data_, outbound_data_.length()));
-        std::cout<<"tu juz nie dochodzi"<<std::endl;
-        m.unlock();
     }
     catch (...) {
         std::cout << "S: Exception: " << "\n";
