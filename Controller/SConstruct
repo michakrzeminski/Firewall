@@ -1,6 +1,6 @@
 import platform, os
 
-baseEnv = Environment()
+baseEnv = Environment(TARGET_ARCH='x86')
 
 if(platform.system() == "Linux"):
    baseEnv.Append( CPPFLAGS = '-std=c++11 -fPIC -finput-charset=iso-8859-2 -Wall -pedantic -pthread -g' )
@@ -11,8 +11,9 @@ if(platform.system() == "Linux"):
 
 elif(platform.system() == "Windows"):
    baseEnv.Append( CPPFLAGS = ' /EHsc /MD /D "WIN32" /D "_WINDOWS" /W4' )
-   baseEnv.Append( CPPPATH = [ 'C:/Boost/boost_1_63_0'] )
-   baseEnv.Append( LIBPATH = [ 'C:/Boost/boost_1_63_0/stage/lib'] )
+   baseEnv.Append( CPPPATH = [ 'C:/Boost/boost_1_63_0','C:/Firewall/libtins/include', 'C:/Firewall/wpcap/Include'] )
+   baseEnv.Append( LIBPATH = [ 'C:/Boost/boost_1_63_0/stage/win32/lib','C:/Firewall/libtins/lib', 'C:/Firewall/wpcap/Lib'] )
+   baseEnv.Append( LIBPATH = [ 'tins' , 'wpcap', 'boost_serialization'] )
 
 else:
    print platform.system() + " not supported"
