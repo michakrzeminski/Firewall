@@ -53,7 +53,7 @@ void Client::read() {
             size_t length = s.read_some(boost::asio::buffer(data), error);
             if (length > 0) {
                 try {
-		    //std::cout<<"C: Rec"<<data<<std::endl;
+		    std::cout<<"C: Rec"<<data<<std::endl;
                     std::string archive_data(&data[0], length);
                     std::istringstream archive_stream(archive_data);
                     boost::archive::text_iarchive archive(archive_stream);
