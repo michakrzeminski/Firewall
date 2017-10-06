@@ -11,14 +11,17 @@ Client* Client::getInstance() {
     }
     return instance;
 }
-
 Client::Client() : s(io_service), resolver(io_service) {
+//Client::Client() : s(io_service, tcp::endpoint(tcp::v4(), 39000)), resolver(io_service) {
     std::cout << "C: Creating tcp client" << std::endl;
 }
 
 bool Client::init() {
     try {
-        boost::asio::connect(s, resolver.resolve({ HOST, PORT }));
+        //boost::asio::connect(s, resolver.resolve({ HOST, PORT }));
+        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 39000);
+        //boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("192.168.1.3"), 8888);
+        s.connect(endpoint);
     }
     catch (std::exception& e) {
         std::cout << "C: Exception: " << e.what() << "\n";
