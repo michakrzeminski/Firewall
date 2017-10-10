@@ -3,6 +3,7 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <vector>
 #include <boost/asio.hpp>
 #include "Protocol.h"
 
@@ -22,6 +23,7 @@ private:
     tcp::socket* s;
     tcp::resolver* resolver;
     std::map<int, boost::asio::ip::tcp::endpoint> clients;
+    std::map<int, std::vector<std::string>> client_rules;
     int counter = 0;
     const char* PORT = "8888";
     std::mutex m;

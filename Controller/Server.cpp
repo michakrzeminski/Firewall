@@ -60,16 +60,29 @@ void Server::session(tcp::socket sock) {
                 if (protocol.header == HELLO) {
                     std::cout << "S: Received: HELLO" <<std::endl;
                     std::cout << "Client: " << counter << " Endpoint: " << sock.remote_endpoint() << std::endl;
-                    clients.insert(std::pair<int, boost::asio::ip::tcp::endpoint>(++counter, sock.remote_endpoint()));
-                    //odsylamy HELLO
+                    clients.insert(std::pair<int, boost::asio::ip::tcp::endpoint>(counter, sock.remote_endpoint()));
+                    client_rules[counter]= std::vector<std::string>();
+                    //sending back HELLO
                     Protocol hello(HELLO);
+                    hello.id = counter;
+                    ++counter;
                     send(&sock, hello);
                 }
 		else if(protocol.header == RULELIST) {
 		    std::cout<<"S: Received: RULELIST"<<std::endl;
 		    for(auto t : protocol.list)
-			std::cout << t << std::endl;
-		    send(&sock, Protocol(OK));
+                std::cout << t << std::endl;
+
+            if (client_rules.find(protocol.id) != client_rules.end()) {
+                client_rules[protocol.id] = std::vector<std::string>(protocol.list);
+            }
+
+            //for (auto k : client_rules) {
+                //std::cout << std::to_string(k.first) << " " << k.second.front() << " " <<k.second.back() << std::endl;
+            //}
+            Protocol ok(OK);
+            ok.id = protocol.id;
+		    send(&sock, ok);
 		}
 		else if(protocol.header == CHECK) {
             std::cout << "S: Received: CHECK: ";
@@ -77,7 +90,13 @@ void Server::session(tcp::socket sock) {
             std::cout<<"Packet: "<<protocol.packet_prot<<" "<<protocol.packet_src<<" "<<protocol.packet_dst<<std::endl;
             if (analyzePacket(protocol.packet_prot,protocol.packet_src,protocol.packet_dst)) {
                 Protocol toSend(ADD);
+                toSend.id = protocol.id;
                 toSend.rule = generateRule(protocol.packet_prot,protocol.packet_src,protocol.packet_dst);
+                //adding rule to client_rules
+                auto iter = client_rules.find(protocol.id);
+                if (iter != client_rules.end()) {
+                    iter->second.push_back(toSend.rule);
+                }
                 send(&sock, toSend);
             }
 		}
