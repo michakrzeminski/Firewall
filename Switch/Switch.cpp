@@ -72,6 +72,7 @@ void Switch::bufferHandling() {
         packetBuffer.pop_front();
         try {
             Protocol toCheck(CHECK);
+            toCheck.id = client->name;
             toCheck.packet_prot = std::get<0>(tempPacket);
             toCheck.packet_src = std::get<1>(tempPacket);
             toCheck.packet_dst = std::get<2>(tempPacket);

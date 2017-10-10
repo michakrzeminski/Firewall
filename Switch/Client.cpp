@@ -19,7 +19,7 @@ Client::Client() : s(io_service), resolver(io_service) {
 bool Client::init() {
     try {
         //boost::asio::connect(s, resolver.resolve({ HOST, PORT }));
-        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 39000);
+        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(HOST), PORT);
         //boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("192.168.1.3"), 8888);
         s.connect(endpoint);
     }
@@ -73,7 +73,9 @@ void Client::read() {
 
 		if(received.header == HELLO) {
 		    std::cout<<"C: Received: HELLO"<<std::endl;
-		    Protocol rulelist(RULELIST);
+		    name = received.id;
+                    Protocol rulelist(RULELIST);
+                    rulelist.id = name;
 		    rulelist.list = PythonAdapter::getInstance()->getRules();
 		    //for(auto t : rulelist.list)
 			//std::cout<< t <<std::endl;

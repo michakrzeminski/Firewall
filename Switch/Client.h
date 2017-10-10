@@ -13,14 +13,15 @@ public:
     bool init();
     void send(Protocol msg);
     void read(); //in diffrent thread loop to receive everything
+    int name;
 private:
     Client();
     static Client* instance;
     boost::asio::io_service io_service;
     tcp::socket s;
     tcp::resolver resolver;
-    const char* HOST = "192.168.1.3";
-    const char* PORT = "8888";
+    const char* HOST = "127.0.0.1";
+    int PORT = 39000;
     std::mutex mutex_;
 };
 #endif
