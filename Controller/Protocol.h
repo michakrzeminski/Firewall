@@ -1,6 +1,5 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
-#include <string>
 #include <vector>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/binary_object.hpp>

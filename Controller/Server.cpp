@@ -1,20 +1,19 @@
-#include "Server.h"
+﻿#include "Server.h"
 #include "Rule.h"
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
 Server* Server::instance = nullptr;
 
-Server* Server::getInstance() {
-    if (!instance) {
-        instance = new Server;
-    }
-    return instance;
+Server* Server::getInstance()
+{
+    static Server instance;
+    return &instance;
 }
 
 Server::Server() {
     std::cout << "creating server" << std::endl;
-    init();
+    //init();
 }
 
 void Server::init() {
@@ -23,8 +22,7 @@ void Server::init() {
         boost::asio::io_service io_service;
 
         tcp::acceptor a(io_service, tcp::endpoint(tcp::v4(), std::atoi(PORT)));
-        //for (;;) {
-            tcp::socket sock(io_service);
+        tcp::socket sock(io_service);
         for(;;) {
             a.accept(sock);
             std::thread(&Server::session, this, std::move(sock)).detach();
@@ -142,6 +140,7 @@ bool Server::analyzePacket(int prot, std::string src, std::string dst) {
 }
 
 std::string Server::generateRule(int prot, std::string src, std::string dst) {
+    //rearrange
     Rule rule;
     rule.chain = "INPUT";
     rule.target = "ACCEPT";
@@ -150,4 +149,15 @@ std::string Server::generateRule(int prot, std::string src, std::string dst) {
     rule.dst = dst;
     //TODO more
     return rule.toString();
+}
+
+std::map<int, boost::asio::ip::tcp::endpoint> Server::getClients() {
+    return clients;
+}
+
+void Server::insertClientRule(int id, std::string rule) {
+    auto iter = client_rules.find(id);
+    if (iter != client_rules.end()) {
+        iter->second.push_back(rule);
+    }
 }
