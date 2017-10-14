@@ -12,7 +12,8 @@ class Switch {
 public:
     static Switch* getInstance();
     void init();
-    void sniff();
+    void sniffEth();
+    void sniffWlan();
     void bufferHandling();
     void fillinPacketmap();
     int convertProtocol(std::string str);
@@ -20,10 +21,12 @@ private:
     Switch();
     static Switch* instance;
     Client* client = Client::getInstance();
-    Tins::Sniffer* sniffer;
-    bool callback(Tins::PDU &pdu);
+    Tins::Sniffer* eth_sniffer;
+    Tins::Sniffer* wlan_sniffer;
+    bool ethCallback(Tins::PDU &pdu);
+    bool wlanCallback(Tins::PDU &pdu);
     bool analyzePacket(const Tins::IP &ip);
-    std::deque<std::tuple<int,std::string,std::string>> packetBuffer;
+    std::deque<std::tuple<char,int,std::string,std::string>> packetBuffer;
     std::vector<PacketDecision> packetMap;
 };
 #endif

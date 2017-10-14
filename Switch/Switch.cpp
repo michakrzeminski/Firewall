@@ -18,7 +18,8 @@ Switch::Switch() {
 
 void Switch::init() {
     std::cout << "switch init" <<std::endl;
-    std::thread(&Switch::sniff, this).detach();
+    std::thread(&Switch::sniffEth, this).detach();
+    std::thread(&Switch::sniffWlan, this).detach();
     PythonAdapter::getInstance();
     fillinPacketmap();
     //Client * client = Client::getInstance();
@@ -28,12 +29,17 @@ void Switch::init() {
     std::thread(&Switch::bufferHandling, this).detach();
 }
 
-void Switch::sniff() {
-    sniffer = new Tins::Sniffer("eth0");
-    sniffer->sniff_loop(make_sniffer_handler(this, &Switch::callback));
+void Switch::sniffEth() {
+    eth_sniffer = new Tins::Sniffer("eth0");
+    eth_sniffer->sniff_loop(make_sniffer_handler(this, &Switch::ethCallback));
 }
 
-bool Switch::callback(Tins::PDU &pdu) {
+void Switch::sniffWlan() {
+    wlan_sniffer = new Tins::Sniffer("wlan0");
+    wlan_sniffer->sniff_loop(make_sniffer_handler(this, &Switch::wlanCallback));
+}
+
+bool Switch::ethCallback(Tins::PDU &pdu) {
     const Tins::IP &ip = pdu.rfind_pdu<Tins::IP>();
     //std::cout<< "from "<<ip.src_addr() <<" to "<<ip.dst_addr()<<" protocol "<<ip.protocol()<<std::endl;
 
@@ -41,7 +47,24 @@ bool Switch::callback(Tins::PDU &pdu) {
         //do bufora
         if(packetBuffer.size() <= NUM_PACKETS) {
             //std::cout<<"do bufora"<<std::endl;
-            packetBuffer.push_back(std::make_tuple((int)ip.protocol(),ip.src_addr().to_string(),ip.dst_addr().to_string()));
+            packetBuffer.push_back(std::make_tuple('I',(int)ip.protocol(),ip.src_addr().to_string(),ip.dst_addr().to_string()));
+        }
+    }
+    return true;
+    //zeby zakonczyc sniffowanie
+    //return false
+}
+
+bool Switch::wlanCallback(Tins::PDU &pdu) {
+
+    const Tins::IP &ip = pdu.rfind_pdu<Tins::IP>();
+    //std::cout<< "from "<<ip.src_addr() <<" to "<<ip.dst_addr()<<" protocol "<<ip.protocol()<<std::endl;
+
+    if(!analyzePacket(ip)) {
+        //do bufora
+        if(packetBuffer.size() <= NUM_PACKETS) {
+            //std::cout<<"do bufora"<<std::endl;
+            packetBuffer.push_back(std::make_tuple('F',(int)ip.protocol(),ip.src_addr().to_string(),ip.dst_addr().to_string()));
         }
     }
     return true;
@@ -73,9 +96,10 @@ void Switch::bufferHandling() {
         try {
             Protocol toCheck(CHECK);
             toCheck.id = client->name;
-            toCheck.packet_prot = std::get<0>(tempPacket);
-            toCheck.packet_src = std::get<1>(tempPacket);
-            toCheck.packet_dst = std::get<2>(tempPacket);
+            toCheck.chain = std::get<0>(tempPacket);
+            toCheck.packet_prot = std::get<1>(tempPacket);
+            toCheck.packet_src = std::get<2>(tempPacket);
+            toCheck.packet_dst = std::get<3>(tempPacket);
             client->send(toCheck);
         }
         catch(std::exception &e) {
