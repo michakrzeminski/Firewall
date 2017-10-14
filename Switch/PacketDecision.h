@@ -1,12 +1,13 @@
 #ifndef PACKETDECISION_H
 #define PACKETDECISION_H
 
+#include <chrono>
 #include <tins/tins.h>
 
 class PacketDecision {
     public:
     PacketDecision() {};
     Tins::IP ip;
-    Decision dec;
+    std::chrono::milliseconds timestamp;
 };
 #endif

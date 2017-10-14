@@ -82,7 +82,7 @@ bool Switch::analyzePacket(const Tins::IP &ip) {
     //std::cout<<"false wiec dodajemy do mapy ze waiting"<<std::endl;
     PacketDecision temp;
     temp.ip = ip;
-    temp.dec = WAITING;
+    temp.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
     packetMap.push_back(temp);
     return false;
 }
@@ -119,7 +119,7 @@ void Switch::fillinPacketmap() {
         packet.protocol(convertProtocol(splitted[2]));
         PacketDecision temp;
         temp.ip = packet;
-        temp.dec = ACCEPT;
+        temp.timestamp =  std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());;
         packetMap.push_back(temp);
     }
     //std::cout<<"D: "<<packetMap.size()<<std::endl;
