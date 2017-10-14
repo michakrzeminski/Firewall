@@ -76,7 +76,7 @@ void UI::menu() {
                     }
                     else if (splitted.size() == 4) {
                         int switch_no = std::atoi(splitted[1].c_str());
-                        std::cout << "Applying action to switch" << splitted[1] << "for " << splitted[2] << " " << splitted[3] << std::endl;
+                        std::cout << "Applying action to switch" << splitted[1] << " for " << splitted[2] << " " << splitted[3] << std::endl;
                         auto iter = server->getClients().find(switch_no);
                         if (iter != server->getClients().end()) {
                             //server->insertClientRule(switch_no, server->generateRule(option, splitted[2], splitted[3]));

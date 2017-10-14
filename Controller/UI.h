@@ -10,9 +10,9 @@ public:
     bool authentication();
     void menu();
     void init();
+    std::vector<std::string> split(const std::string &s, char delim);
 private:
     UI();
-    std::vector<std::string> split(const std::string &s, char delim);
     static UI* instance;
 };
 #endif

@@ -20,6 +20,7 @@ public:
     std::map<int, boost::asio::ip::tcp::endpoint> getClients();
     void insertClientRule(int, std::string);
     void insertAdminRule(int,int,std::string,std::string);
+    bool checkAddressInRange(std::string, std::string);
 private:
     Server();
     static Server* instance;
