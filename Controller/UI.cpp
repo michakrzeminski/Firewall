@@ -60,7 +60,8 @@ void UI::menu() {
                     std::cout << "Applying action to all switches" << std::endl;
                     //wiec do wszystkich tabel client_rules dodac ze accept protocol
                     for (auto s : server->getClients()) {
-                        server->insertClientRule(s.first, server->generateRule(option,"*","*"));
+                        //server->insertClientRule(s.first, server->generateRule(option,"*","*"));
+                        server->insertAdminRule(option, s.first, "*","*");
                     }
                 }
                 else {
@@ -69,7 +70,8 @@ void UI::menu() {
                         int switch_no = std::atoi(splitted[1].c_str());
                         auto iter = server->getClients().find(switch_no);
                         if (iter != server->getClients().end()) {
-                            server->insertClientRule(switch_no, server->generateRule(option, "*", "*"));
+                            //server->insertClientRule(switch_no, server->generateRule(option, "*", "*"));
+                            server->insertAdminRule(option, switch_no, "*", "*");
                         }
                     }
                     else if (splitted.size() == 4) {
@@ -77,7 +79,8 @@ void UI::menu() {
                         std::cout << "Applying action to switch" << splitted[1] << "for " << splitted[2] << " " << splitted[3] << std::endl;
                         auto iter = server->getClients().find(switch_no);
                         if (iter != server->getClients().end()) {
-                            server->insertClientRule(switch_no, server->generateRule(option, splitted[2], splitted[3]));
+                            //server->insertClientRule(switch_no, server->generateRule(option, splitted[2], splitted[3]));
+                            server->insertAdminRule(option, switch_no, splitted[2], splitted[3]);
                         }
                     }
                 }

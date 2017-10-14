@@ -17,6 +17,7 @@ public:
     std::vector<std::string> list;
     std::string rule;
     //Tins::IP packet;
+    char chain = '\0';
     int packet_prot = 0;
     std::string packet_src;
     std::string packet_dst;
@@ -28,6 +29,7 @@ public:
 	    ar & list;
 	    ar & rule;
 	    //ar & boost::serialization::make_nvp("packet", boost::serialization::make_binary_object(&packet, sizeof(packet)));
+        ar & chain;
         ar & packet_prot;
         ar & packet_src;
         ar & packet_dst;

@@ -86,16 +86,50 @@ void Server::session(tcp::socket sock) {
             std::cout << "S: Received: CHECK: ";
             //Tins::IP &ip = protocol.packet;
             std::cout<<"Packet: "<<protocol.packet_prot<<" "<<protocol.packet_src<<" "<<protocol.packet_dst<<std::endl;
-            if (analyzePacket(protocol.packet_prot,protocol.packet_src,protocol.packet_dst)) {
-                Protocol toSend(ADD);
-                toSend.id = protocol.id;
-                toSend.rule = generateRule(protocol.packet_prot,protocol.packet_src,protocol.packet_dst);
-                //adding rule to client_rules
-                auto iter = client_rules.find(protocol.id);
-                if (iter != client_rules.end()) {
-                    iter->second.push_back(toSend.rule);
+            if (analyzePacket(protocol.packet_prot,protocol.id,protocol.packet_src,protocol.packet_dst)) {
+                if (protocol.chain == 'I') {
+                    std::cout << "Input/Output rules" << std::endl;
+                    Protocol toSend(ADD);
+                    toSend.id = protocol.id;
+
+                    //input rule
+                    toSend.rule = generateRule("INPUT", protocol.packet_prot, protocol.packet_src, "");
+                    auto iter = client_rules.find(protocol.id);
+                    if (iter != client_rules.end()) {
+                        //adding rule to client_rules
+                        iter->second.push_back(toSend.rule);
+                    }
+                    send(&sock, toSend);
+
+                    //output rule
+                    toSend.rule = generateRule("OUTPUT", protocol.packet_prot, "",protocol.packet_dst);
+                    if (iter != client_rules.end()) {
+                        //adding rule to client_rules
+                        iter->second.push_back(toSend.rule);
+                    }
+                    send(&sock, toSend);
                 }
-                send(&sock, toSend);
+                else if (protocol.chain == 'F') {
+                    std::cout << "Forward rules" << std::endl;
+                    Protocol toSend(ADD);
+                    toSend.id = protocol.id;
+                    //forward in rule
+                    toSend.rule = generateRule("FORWARDIN", protocol.packet_prot, protocol.packet_src, protocol.packet_dst);
+                    auto iter = client_rules.find(protocol.id);
+                    if (iter != client_rules.end()) {
+                        //adding rule to client_rules
+                        iter->second.push_back(toSend.rule);
+                    }
+                    send(&sock, toSend);
+
+                    //forward out rule
+                    toSend.rule = generateRule("FORWARDOUT", protocol.packet_prot, protocol.packet_dst, protocol.packet_src);
+                    if (iter != client_rules.end()) {
+                        //adding rule to client_rules
+                        iter->second.push_back(toSend.rule);
+                    }
+                    send(&sock, toSend);
+                }
             }
 		}
 		else if(protocol.header == ADDED) {
@@ -134,20 +168,54 @@ void Server::send(tcp::socket* sock, Protocol toSend) {
     }
 }
 
-bool Server::analyzePacket(int prot, std::string src, std::string dst) {
-    //TODO
-    return true;
+bool Server::analyzePacket(int prot, int switch_no, std::string src, std::string dst) {
+    std::cout << "Analyzing packet ..." <<std::to_string(prot)<<" "<< std::to_string(switch_no)<<" "<<src<<" "<<dst<<std::endl;
+    for (auto rule_iter : admin_rules) {
+        if(rule_iter.size() == 4)
+        if ((boost::any_cast<int>(rule_iter[0]) == prot || boost::any_cast<int>(rule_iter[0]) == 255)
+           && (boost::any_cast<int>(rule_iter[1]) == switch_no)
+           && (boost::any_cast<std::string>(rule_iter[2]) == src || boost::any_cast<std::string>(rule_iter[2]) == "*")
+           && (boost::any_cast<std::string>(rule_iter[3]) == dst || boost::any_cast<std::string>(rule_iter[3]) == "*") ) {
+            //reguła została zdefiniowana przez administratora
+            std::cout << "DEBUG OK" << std::endl;
+            return true;
+        }
+        else {
+            std::cout << "DEBUG NOT OK" << std::endl;
+            //przechodzimy do kolejnej reguły
+        }
+    }
+    std::cout << "return false" << std::endl;
+    return false;
 }
 
-std::string Server::generateRule(int prot, std::string src, std::string dst) {
-    //rearrange
+std::string Server::generateRule(std::string chain, int prot, std::string src, std::string dst) {
     Rule rule;
-    rule.chain = "INPUT";
     rule.target = "ACCEPT";
     rule.protocol = (uint8_t) prot;
-    rule.src = src;
-    rule.dst = dst;
-    //TODO more
+    if (chain == "INPUT") {
+        rule.chain = chain;
+        rule.src = src;
+    }
+    else if (chain == "OUTPUT") {
+        rule.chain = chain;
+        rule.dst = dst;
+    }
+    else if (chain == "FORWARDIN") {
+        rule.chain = "FORWARD";
+        rule.src = src;
+        rule.dst = dst;
+        rule.in_interface = "wlan0";
+        rule.out_interface = "eth0";
+    }
+    else if (chain == "FORWARDOUT") {
+        rule.chain = "FORWARD";
+        rule.src = src;
+        rule.dst = dst;
+        rule.in_interface = "eth0";
+        rule.out_interface = "wlan0";
+    }
+    std::cout << "Generated rule: " << rule.toString() << std::endl;
     return rule.toString();
 }
 
@@ -160,4 +228,23 @@ void Server::insertClientRule(int id, std::string rule) {
     if (iter != client_rules.end()) {
         iter->second.push_back(rule);
     }
+}
+
+void Server::insertAdminRule(int prot, int switch_no, std::string src, std::string dst) {
+    std::vector<boost::any> temp;
+    temp.push_back(prot);
+    temp.push_back(switch_no);
+    temp.push_back(src);
+    temp.push_back(dst);
+    admin_rules.push_back(temp);
+    //TO REMOVE print all admin rules
+    for (auto a : admin_rules) {
+        for (auto b : a) {
+            if (typeid(int) == b.type())
+                std::cout << " " << boost::any_cast<int>(b);
+            else
+                std::cout << " " << boost::any_cast<std::string>(b);
+        }
+    }
+    std::cout << "Inserted admin rule" << std::endl;
 }
