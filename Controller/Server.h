@@ -18,6 +18,7 @@ public:
     bool analyzePacket(int,int,std::string,std::string);
     std::string generateRule(std::string, int, std::string,std::string);
     std::map<int, boost::asio::ip::tcp::endpoint> getClients();
+    std::vector<std::vector<boost::any>> getAdminRules();
     void insertClientRule(int, std::string);
     void insertAdminRule(int,int,std::string,std::string);
     bool checkAddressInRange(std::string, std::string);

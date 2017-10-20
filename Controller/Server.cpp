@@ -48,7 +48,7 @@ void Server::session(tcp::socket sock) {
                         std::istringstream archive_stream(archive_data);
                         boost::archive::text_iarchive archive(archive_stream);
                         archive >> protocol;
-    	                std::cout<<"S: data: "<<archive_data<<std::endl;
+    	                //std::cout<<"S: data: "<<archive_data<<std::endl;
                     }
                     catch (std::exception& e) {
                         // Unable to decode data.
@@ -58,7 +58,7 @@ void Server::session(tcp::socket sock) {
                     }
 
                     if (protocol.header == HELLO) {
-                        std::cout << "S: Received: HELLO" <<std::endl;
+                        UI::getInstance()->printColor("S: Received: HELLO", YELLOW);
                         std::cout << "Client: " << counter << " Endpoint: " << sock.remote_endpoint() << std::endl;
                         clients.insert(std::pair<int, boost::asio::ip::tcp::endpoint>(counter, sock.remote_endpoint()));
                         client_rules[counter]= std::vector<std::string>();
@@ -69,7 +69,7 @@ void Server::session(tcp::socket sock) {
                         send(&sock, hello);
                     }
 		    else if(protocol.header == RULELIST) {
-		        std::cout<<"S: Received: RULELIST"<<std::endl;
+                UI::getInstance()->printColor("S: Received: RULELIST",YELLOW);
 		        for(auto t : protocol.list)
                     std::cout << t << std::endl;
 
@@ -85,12 +85,11 @@ void Server::session(tcp::socket sock) {
 		        send(&sock, ok);
 		    }
 		    else if(protocol.header == CHECK) {
-                std::cout << "S: Received: CHECK: ";
                 //Tins::IP &ip = protocol.packet;
-                std::cout<<"Packet: "<<protocol.packet_prot<<" "<<protocol.packet_src<<" "<<protocol.packet_dst<<std::endl;
+                UI::getInstance()->printColor("S: Received: CHECK Packet: " + std::to_string(protocol.packet_prot) + " " + protocol.packet_src + " " + protocol.packet_dst, YELLOW);
                 if (analyzePacket(protocol.packet_prot,protocol.id,protocol.packet_src,protocol.packet_dst)) {
                     if (protocol.chain == 'I') {
-                        std::cout << "Input/Output rules" << std::endl;
+                        //Input/Output rules
                         Protocol toSend(ADD);
                         toSend.id = protocol.id;
 
@@ -112,7 +111,7 @@ void Server::session(tcp::socket sock) {
                         send(&sock, toSend);
                     }
                     else if (protocol.chain == 'F') {
-                        std::cout << "Forward rules" << std::endl;
+                        //Forward rules
                         Protocol toSend(ADD);
                         toSend.id = protocol.id;
                         //forward in rule
@@ -135,10 +134,10 @@ void Server::session(tcp::socket sock) {
                 }
 		    }
 		    else if(protocol.header == ADDED) {
-           	        std::cout << "S: Received: ADDED" << std::endl;
+                UI::getInstance()->printColor("S: Received: ADDED", YELLOW);
 		    }
 		    else if(protocol.header == DELED) {
-            	        std::cout << "S: Received: DELED" << std::endl;
+                UI::getInstance()->printColor("S: Received: DELED", YELLOW);
 		    }
             else
                         std::cout<<"S: not supported"<<std::endl;
@@ -153,7 +152,7 @@ void Server::session(tcp::socket sock) {
             }
         }
         catch (...) {
-            std::cout << "packet too big" << std::endl;
+            std::cout << "S: Exception" << std::endl;
         }
             //echoing to client
             //boost::asio::write(sock, boost::asio::buffer(data, length));
@@ -166,7 +165,7 @@ void Server::send(tcp::socket* sock, Protocol toSend) {
         boost::archive::text_oarchive archive(archive_stream);
         archive << toSend;
         auto outbound_data_ = archive_stream.str();
-	    std::cout<<"S: Sending: "<< toSend.header << " " << outbound_data_ <<" "<<outbound_data_.length()<<std::endl;
+        UI::getInstance()->printColor("S: Sending: " + std::to_string(toSend.header) + " " + outbound_data_, MAGENTA);
         boost::asio::write(*sock, boost::asio::buffer(outbound_data_, outbound_data_.length()));
     }
     catch (...) {
@@ -175,22 +174,22 @@ void Server::send(tcp::socket* sock, Protocol toSend) {
 }
 
 bool Server::analyzePacket(int prot, int switch_no, std::string src, std::string dst) {
-    std::cout << "Analyzing packet ..." <<std::to_string(prot)<<" "<< std::to_string(switch_no)<<" "<<src<<" "<<dst<<std::endl;
+    //std::cout << "Analyzing packet ..." <<std::to_string(prot)<<" "<< std::to_string(switch_no)<<" "<<src<<" "<<dst<<std::endl;
     for (auto rule_iter : admin_rules) {
         if (rule_iter.size() == 4) {
-            std::cout << boost::any_cast<int>(rule_iter[0]) << " " << boost::any_cast<int>(rule_iter[1]) << " " << boost::any_cast<std::string>(rule_iter[2]) << " " << boost::any_cast<std::string>(rule_iter[3]) << std::endl;
+            //std::cout << boost::any_cast<int>(rule_iter[0]) << " " << boost::any_cast<int>(rule_iter[1]) << " " << boost::any_cast<std::string>(rule_iter[2]) << " " << boost::any_cast<std::string>(rule_iter[3]) << std::endl;
             if ((boost::any_cast<int>(rule_iter[0]) == prot || boost::any_cast<int>(rule_iter[0]) == 255) && (boost::any_cast<int>(rule_iter[1]) == switch_no)
                 && checkAddressInRange(boost::any_cast<std::string>(rule_iter[2]), src) && checkAddressInRange(boost::any_cast<std::string>(rule_iter[3]), dst)) {
-                std::cout << "DEBUG OK" << std::endl;
+                UI::getInstance()->printColor("analysis OK", GREEN);
                 return true;
             }
             else {
-                std::cout << "DEBUG NOT OK" << std::endl;
+                //std::cout << "DEBUG NOT OK" << std::endl;
                 //przechodzimy do kolejnej reguły
             }
         }
     }
-    std::cout << "return false" << std::endl;
+    UI::getInstance()->printColor("analysis false", RED);
     return false;
 }
 
@@ -220,7 +219,8 @@ std::string Server::generateRule(std::string chain, int prot, std::string src, s
         rule.in_interface = "eth0";
         rule.out_interface = "wlan0";
     }
-    std::cout << "Generated rule: " << rule.toString() << std::endl;
+    //std::cout << "Generated rule: " << rule.toString() << std::endl;
+    UI::getInstance()->printColor("Generated rule: " + rule.toString(), GREEN);
     return rule.toString();
 }
 
@@ -242,49 +242,43 @@ void Server::insertAdminRule(int prot, int switch_no, std::string src, std::stri
     temp.push_back(src);
     temp.push_back(dst);
     admin_rules.push_back(temp);
-    //TO REMOVE print all admin rules
-    for (auto a : admin_rules) {
-        for (auto b : a) {
-            if (typeid(int) == b.type())
-                std::cout << " " << boost::any_cast<int>(b);
-            else
-                std::cout << " " << boost::any_cast<std::string>(b);
-        }
-        std::cout<<std::endl;
-    }
-    std::cout << "Inserted admin rule" << std::endl;
+    //std::cout << "Inserted admin rule" << std::endl;
 }
 
 bool Server::checkAddressInRange(std::string range, std::string address) {
-    std::cout << "checking " << range << " " << address << std::endl;
+    //std::cout << "checking " << range << " " << address << std::endl;
     auto range_split = UI::getInstance()->split(range, '-');//eg. 192.168.1.100-192.168.1.200
 
     if (range_split.size() > 1) {
-        std::cout << "DEBUG1" << std::endl;
+        //std::cout << "DEBUG1" << std::endl;
         auto address1 = UI::getInstance()->split(range_split[0], '.');
         auto address2 = UI::getInstance()->split(range_split[1], '.');
         auto address_checked = UI::getInstance()->split(address, '.');
         if (address1.size() == 4 && address2.size() == 4) {
-            std::cout << "DEBUG2" << std::endl;
-            std::cout << address1[0] << "==" << address_checked[0] << "==" << address2[0] << std::endl;
-            std::cout << address1[1] << "==" << address_checked[1] << "==" << address2[1] << std::endl;
-            std::cout << address1[2] << "==" << address_checked[2] << "==" << address2[2] << std::endl;
-            std::cout << address1[3] << "<" << address_checked[3] << "<" << address2[3] << std::endl;
+            //std::cout << "DEBUG2" << std::endl;
+            //std::cout << address1[0] << "==" << address_checked[0] << "==" << address2[0] << std::endl;
+            //std::cout << address1[1] << "==" << address_checked[1] << "==" << address2[1] << std::endl;
+            //std::cout << address1[2] << "==" << address_checked[2] << "==" << address2[2] << std::endl;
+            //std::cout << address1[3] << "<" << address_checked[3] << "<" << address2[3] << std::endl;
             if (atoi(address1[0].c_str())== atoi(address_checked[0].c_str()) && atoi(address_checked[0].c_str()) == atoi(address2[0].c_str())
                 && atoi(address1[1].c_str()) == atoi(address_checked[1].c_str()) && atoi(address_checked[1].c_str()) == atoi(address2[1].c_str())
                 && atoi(address1[2].c_str()) == atoi(address_checked[2].c_str()) && atoi(address_checked[2].c_str()) == atoi(address2[2].c_str())
                 && atoi(address1[3].c_str()) < atoi(address_checked[3].c_str()) && atoi(address_checked[3].c_str()) < atoi(address2[3].c_str())) {
-                std::cout << "jest w przedziale" << range << std::endl;
+                //std::cout << "in range " << range << std::endl;
                 return true;
             }
         }
     }
     else {
         if (range == address || range == "*") {
-            std::cout << "OK" << std::endl;
+            //std::cout << "OK" << std::endl;
             return true;
         }
-        std::cout << "DEBUG3" << std::endl;
+        //std::cout << "DEBUG3" << std::endl;
     }
     return false;
+}
+
+std::vector<std::vector<boost::any>> Server::getAdminRules() {
+    return admin_rules;
 }
