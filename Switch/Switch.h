@@ -26,6 +26,7 @@ private:
     bool ethCallback(Tins::PDU &pdu);
     bool wlanCallback(Tins::PDU &pdu);
     bool analyzePacket(const Tins::IP &ip);
+    char getChain(const Tins::IP &ip);
     std::deque<std::tuple<char,int,std::string,std::string>> packetBuffer;
     std::vector<PacketDecision> packetMap;
 };

@@ -47,7 +47,7 @@ bool Switch::ethCallback(Tins::PDU &pdu) {
         //do bufora
         if(packetBuffer.size() <= NUM_PACKETS) {
             //std::cout<<"do bufora"<<std::endl;
-            packetBuffer.push_back(std::make_tuple('I',(int)ip.protocol(),ip.src_addr().to_string(),ip.dst_addr().to_string()));
+            packetBuffer.push_back(std::make_tuple(getChain(ip),(int)ip.protocol(),ip.src_addr().to_string(),ip.dst_addr().to_string()));
         }
     }
     return true;
@@ -64,12 +64,24 @@ bool Switch::wlanCallback(Tins::PDU &pdu) {
         //do bufora
         if(packetBuffer.size() <= NUM_PACKETS) {
             //std::cout<<"do bufora"<<std::endl;
-            packetBuffer.push_back(std::make_tuple('F',(int)ip.protocol(),ip.src_addr().to_string(),ip.dst_addr().to_string()));
+            packetBuffer.push_back(std::make_tuple(getChain(ip),(int)ip.protocol(),ip.src_addr().to_string(),ip.dst_addr().to_string()));
         }
     }
     return true;
     //zeby zakonczyc sniffowanie
     //return false
+}
+
+char Switch::getChain(const Tins::IP &ip) {
+    if(ip.src_addr().to_string() == SWITCH_IP) {
+        return 'O';
+    }
+    else if(ip.dst_addr().to_string() == SWITCH_IP) {
+        return 'I';
+    }
+    else {
+        return 'F';
+    }
 }
 
 bool Switch::analyzePacket(const Tins::IP &ip) {
