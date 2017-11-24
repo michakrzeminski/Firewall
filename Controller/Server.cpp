@@ -89,11 +89,10 @@ void Server::session(tcp::socket sock) {
                 UI::getInstance()->printColor("S: Received: CHECK Packet: " + std::to_string(protocol.packet_prot) + " " + protocol.packet_src + " " + protocol.packet_dst, YELLOW);
                 if (analyzePacket(protocol.packet_prot,protocol.id,protocol.packet_src,protocol.packet_dst)) {
                     if (protocol.chain == 'I') {
-                        //Input/Output rules
+                        //Input rule
                         Protocol toSend(ADD);
                         toSend.id = protocol.id;
 
-                        //input rule
                         toSend.rule = generateRule("INPUT", protocol.packet_prot, protocol.packet_src, "");
                         auto iter = client_rules.find(protocol.id);
                         if (iter != client_rules.end()) {
@@ -101,9 +100,14 @@ void Server::session(tcp::socket sock) {
                             iter->second.push_back(toSend.rule);
                         }
                         send(&sock, toSend);
+                    }
+                    if (protocol.chain == 'O') {
+                        //Output rule
+                        Protocol toSend(ADD);
+                        toSend.id = protocol.id;
 
-                        //output rule
                         toSend.rule = generateRule("OUTPUT", protocol.packet_prot, "",protocol.packet_dst);
+                        auto iter = client_rules.find(protocol.id);
                         if (iter != client_rules.end()) {
                             //adding rule to client_rules
                             iter->second.push_back(toSend.rule);
@@ -114,8 +118,9 @@ void Server::session(tcp::socket sock) {
                         //Forward rules
                         Protocol toSend(ADD);
                         toSend.id = protocol.id;
+
                         //forward in rule
-                        toSend.rule = generateRule("FORWARDIN", protocol.packet_prot, protocol.packet_src, protocol.packet_dst);
+                        toSend.rule = generateRule("FORWARD", protocol.packet_prot, protocol.packet_src, protocol.packet_dst);
                         auto iter = client_rules.find(protocol.id);
                         if (iter != client_rules.end()) {
                             //adding rule to client_rules
@@ -124,7 +129,7 @@ void Server::session(tcp::socket sock) {
                         send(&sock, toSend);
 
                         //forward out rule
-                        toSend.rule = generateRule("FORWARDOUT", protocol.packet_prot, protocol.packet_dst, protocol.packet_src);
+                        toSend.rule = generateRule("FORWARD", protocol.packet_prot, protocol.packet_dst, protocol.packet_src);
                         if (iter != client_rules.end()) {
                             //adding rule to client_rules
                             iter->second.push_back(toSend.rule);
@@ -195,7 +200,7 @@ bool Server::analyzePacket(int prot, int switch_no, std::string src, std::string
 
 std::string Server::generateRule(std::string chain, int prot, std::string src, std::string dst) {
     Rule rule;
-    rule.target = "ACCEPT";
+    rule.target = "ACCEPT_LOG";
     rule.protocol = (uint8_t) prot;
     if (chain == "INPUT") {
         rule.chain = chain;
@@ -205,19 +210,10 @@ std::string Server::generateRule(std::string chain, int prot, std::string src, s
         rule.chain = chain;
         rule.dst = dst;
     }
-    else if (chain == "FORWARDIN") {
-        rule.chain = "FORWARD";
+    else if (chain == "FORWARD") {
+        rule.chain = chain;
         rule.src = src;
         rule.dst = dst;
-        rule.in_interface = "wlan0";
-        rule.out_interface = "eth0";
-    }
-    else if (chain == "FORWARDOUT") {
-        rule.chain = "FORWARD";
-        rule.src = src;
-        rule.dst = dst;
-        rule.in_interface = "eth0";
-        rule.out_interface = "wlan0";
     }
     //std::cout << "Generated rule: " << rule.toString() << std::endl;
     UI::getInstance()->printColor("Generated rule: " + rule.toString(), GREEN);
