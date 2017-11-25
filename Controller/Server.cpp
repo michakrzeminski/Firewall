@@ -59,7 +59,7 @@ void Server::session(tcp::socket sock) {
 
                     if (protocol.header == HELLO) {
                         UI::getInstance()->printColor("S: Received: HELLO", YELLOW);
-                        std::cout << "Client: " << counter << " Endpoint: " << sock.remote_endpoint() << std::endl;
+                        std::cout << "New Client: " << counter << std::endl;// " Endpoint: " << sock.remote_endpoint() << std::endl;
                         clients.insert(std::pair<int, boost::asio::ip::tcp::endpoint>(counter, sock.remote_endpoint()));
                         client_rules[counter]= std::vector<std::string>();
                         //sending back HELLO
@@ -100,6 +100,14 @@ void Server::session(tcp::socket sock) {
                             iter->second.push_back(toSend.rule);
                         }
                         send(&sock, toSend);
+                        //Output rule
+                        toSend.rule = generateRule("OUTPUT", protocol.packet_prot, "", protocol.packet_dst);
+                        iter = client_rules.find(protocol.id);
+                        if (iter != client_rules.end()) {
+                            //adding rule to client_rules
+                            iter->second.push_back(toSend.rule);
+                        }
+                        send(&sock, toSend);
                     }
                     if (protocol.chain == 'O') {
                         //Output rule
@@ -108,6 +116,14 @@ void Server::session(tcp::socket sock) {
 
                         toSend.rule = generateRule("OUTPUT", protocol.packet_prot, "",protocol.packet_dst);
                         auto iter = client_rules.find(protocol.id);
+                        if (iter != client_rules.end()) {
+                            //adding rule to client_rules
+                            iter->second.push_back(toSend.rule);
+                        }
+                        send(&sock, toSend);
+                        //Input rule
+                        toSend.rule = generateRule("INPUT", protocol.packet_prot, protocol.packet_src, "");
+                        iter = client_rules.find(protocol.id);
                         if (iter != client_rules.end()) {
                             //adding rule to client_rules
                             iter->second.push_back(toSend.rule);
